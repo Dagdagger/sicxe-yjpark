@@ -12,7 +12,8 @@ public class ParseProcessor implements XEToyAssembler2 {
 	
 	// SYMTAB 생성하기 위한 vector 선언
 	// 각 method 에서 공유하기 위해 클래스 변수로 선언
-	Vector<SYMTAB> STAB = new Vector<SYMTAB>();
+	// ?
+	static Vector<SYMTAB> STAB = new Vector<SYMTAB>();
 	
 	// 기본 생성자
 	public ParseProcessor() {}
@@ -153,8 +154,14 @@ public class ParseProcessor implements XEToyAssembler2 {
 	// 1번 함수를 통해 얻어낸 Vector 값을 Immediate 형태로 변환
 	@Override
 	public Vector<CodeLineDTO> changeImmediateCode(Vector<CodeLineDTO> vector) {
+
 		Vector<CodeLineDTO> CLDTO = vector;
-//		CodeLineDTO c = new CodeLineDTO();
+		
+		// Immediate Data(화면출력)을 처리하기 위한
+		// Immediate Data의 형식은 CodeLineDTO 와 동일
+//		Vector<CodeLineDTO> IDTO = new Vector<CodeLineDTO>();
+		CodeLineDTO im = new CodeLineDTO();
+
 		LOCCTR LOCCTR = new LOCCTR();
 		
 		String label = "";
@@ -216,12 +223,16 @@ public class ParseProcessor implements XEToyAssembler2 {
 				pgname = label;
 				LOCCTR.setLOCCTR(operand);
 			}
-
-			//
+			
+			c.setAddress(LOCCTR.getLOCCTR());
+			
+			// formattype 길이만큼 LOCCTR을 증가
 			LOCCTR.addLOCCTR(formattype);
 			
 			////////////////
-			System.out.println(LOCCTR.getLOCCTR());
+//			System.out.println(LOCCTR.getLOCCTR());
+			
+			CLDTO.setElementAt(c, i);
 		}
 		
 		// 해당 vertor를 반환한다.
