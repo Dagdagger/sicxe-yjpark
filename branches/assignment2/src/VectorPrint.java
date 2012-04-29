@@ -19,11 +19,21 @@ public class VectorPrint extends CodeLineDTO {
 	
 	public void PrintCLDTO(Vector<CodeLineDTO> vector) {
 		
+		System.out.println("line:"
+				+" Address"
+				+"\tLabel"
+				+"\tOpcode"
+				+"\tOperand1"
+				+"\tOperand2"
+				+"\tComments"
+		);
+		
 		for(int i=0; i<vector.size(); i++) {
 			CodeLineDTO v = vector.get(i);
 			
 			System.out.println(i+":"
-								+" "+v.getLabel()
+								+" "+v.getAddress()
+								+"\t"+v.getLabel()
 								+"\t"+v.getOpcode()
 								+"\t"+v.getOperand1()
 								+"\t"+v.getOperand2()
