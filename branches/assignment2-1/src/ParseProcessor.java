@@ -153,11 +153,13 @@ public class ParseProcessor implements XEToyAssembler2 {
 	public Vector<CodeLineDTO> changeImmediateCode(Vector<CodeLineDTO> vector) {
 
 		Vector<CodeLineDTO> CLDTO = vector;
+		Vector<LITTAB> LITTAB = new Vector<LITTAB>();
 		
 		// Immediate Data(화면출력)을 처리하기 위한
 		// Immediate Data의 형식은 CodeLineDTO 와 동일
 //		Vector<CodeLineDTO> IDTO = new Vector<CodeLineDTO>();
 		CodeLineDTO im = new CodeLineDTO();
+		LITTAB lt = new LITTAB();
 
 //		LOCCTR LOCCTR = new LOCCTR();
 		
@@ -189,6 +191,8 @@ public class ParseProcessor implements XEToyAssembler2 {
 			if(c.getLineString() != null && c.getLineString().equals("."))
 				continue;
 
+			formattype = ot.getFormatType(c.getOpcode());
+			
 			// OPCODE & OPERAND
 			if(c.getOperand1() == null) {
 				opcode = ot.getMNEMONIC(c.getOpcode());
@@ -210,35 +214,52 @@ public class ParseProcessor implements XEToyAssembler2 {
 				opcode = ot.getMNEMONIC(c.getOpcode());
 				operand = c.getOperand1()+c.getOperand2();
 				
+				// LITTAB 에 추가
+				if(c.getOperand1().equals("=")) {
+					lt.setLiteralName(c.getOperand2());
+					LITTAB.add(lt);
+				}
+					
+				
 			} else {
 				opcode = ot.getMNEMONIC(c.getOpcode());
 				operand = c.getOperand2();
 			}
 			
-			if((formattype = ot.getFormatType(c.getOpcode())) == 0) {				
+			// Directive 인 경우
+			if(formattype  == 0) {
 				// 프로그램의 시작
 				if(opcode.equals("START")) {
-					
-//					pgname = label;
-//					LOCCTR.setLOCCTR(operand);
 					// 시작주소 설정
 					locctr = Integer.parseInt(operand);
 				
-				// 프로그램의 끝
-				} else if(opcode.equals("END")) {
+				} else if(opcode.equals("BYTE") || opcode.equals("WORD")) {
 					
-				
+				} else if(opcode.equals("RESB") || opcode.equals("RESW")) {
+					// CodeLineDTO 에 주소값 저장
+					c.setAddress(locctr);
+					locctr += (ot.getOffset(c.getOpcode()) * Integer.parseInt(operand));
+					
+				} else if(opcode.equals("LTORG")) { // LITTAB 주소할당
+					for(int i1=0; i1<LITTAB.size(); i1++) {
+						LITTAB lit = LITTAB.get(i1);
+						
+						lit.getLength();
+					}
+				} else if(opcode.equals("CSECT")) {
+					// location counter 초기화
+					locctr = 0;
+					
+				} else if(opcode.equals("END")) {	// 프로그램의 끝
+					// LITTAB 에서 주소할당 안된 literal 모두 주소할당
 				}
-			} else {
+			} else {	// Instruction 인 경우
 				// CodeLineDTO 에 주소값 저장
 				c.setAddress(locctr);
 				
 				// formattype 길이만큼 location counter 증가
 				locctr += formattype;
 			}
-			
-			////////////////
-//			System.out.println(LOCCTR.getLOCCTR());
 			
 			// 현재 element를 추가된 정보로 변경한다
 			CLDTO.setElementAt(c, i);

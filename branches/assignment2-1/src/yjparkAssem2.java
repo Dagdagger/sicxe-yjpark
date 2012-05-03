@@ -12,6 +12,7 @@ public class yjparkAssem2 {
 		
 		// 파일을 읽기 위한 변수 선언
 		File ifp = null, ofp = null;
+		String infile = "";
 		
 		// 읽어 드린 파일을 Parsing 하기 위한 instance 생성
 		ParseProcessor pp = new ParseProcessor();
@@ -21,15 +22,18 @@ public class yjparkAssem2 {
 		
 		// 입력파일을 실행인자로 입력 받거나 없으면 기본 파일명으로 설정
 		if (args.length != 1) {
-			args[0] = "input.txt";
+			infile = "input.txt";
+		} else {
+			infile = args[0];
 		}
 		
 		// 파일을 읽어드리고, 해당 파일이 없으면 오류 메세지 출력
 		try {
-			ifp = new File(args[0]);
+			ifp = new File(infile);
 		} catch (Exception e) {
-			System.out.println(args[0]+" 파일이 없습니다.");
+			System.out.println(infile+" 파일이 없습니다.");
 			e.printStackTrace();
+			System.exit(1);
 		}
 		
 		

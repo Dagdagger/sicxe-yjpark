@@ -1,10 +1,9 @@
 // 
 public class OPTAB {
-	
 	// 변경되지 않는 고정 정보이므로 2차원 배열에 저장한다.
 	private String[][] OPCODE = {
 			// Directive = 0
-			// Memonic, Format, Hexadeciaml, Offset, OperandNumber
+			// Memonic, Format, Hexadecimal, Offset, OperandNumber
 			// --------------------
 			{"ADD", "3", "18", "3", "1"},
 			{"ADDF", "3", "58", "3", "1"},
@@ -66,21 +65,21 @@ public class OPTAB {
 			{"WD", "3", "DC", "3", "1"},
 			
 			// Directive
-			{"BASE", "0", "1", "0", "1"},
-			{"BYTE", "0", "2", "0", "1"},
-			{"CSECT", "0", "3", "0", "1"},
-			{"END", "0", "4", "0", "1"},
-			{"EQU", "0", "5", "0", "1"},
-			{"EXTDEF", "0", "6", "0", "1"},
-			{"EXTREF", "0", "7", "0", "1"},
-			{"LTORG", "0", "8", "0", "0"},
-			{"NOBASE", "0", "9", "0", "0"},
-			{"ORG", "0", "A", "0", "1"},
-			{"RESB", "0", "B", "0", "1"},
-			{"RESW", "0", "C", "0", "1"},
-			{"START", "0", "D", "0", "1"},
-			{"USE", "0", "E", "0", "1"},
-			{"WORD", "0", "F", "3", "1"}
+			{"BASE", "0", "FF1", "0", "1"},
+			{"BYTE", "0", "FF2", "1", "1"},
+			{"CSECT", "0", "FF3", "0", "1"},
+			{"END", "0", "FF4", "0", "1"},
+			{"EQU", "0", "FF5", "0", "1"},
+			{"EXTDEF", "0", "FF6", "0", "1"},
+			{"EXTREF", "0", "FF7", "0", "1"},
+			{"LTORG", "0", "FF8", "0", "0"},
+			{"NOBASE", "0", "FF9", "0", "0"},
+			{"ORG", "0", "FFA", "0", "1"},
+			{"RESB", "0", "FFB", "1", "1"},
+			{"RESW", "0", "FFC", "3", "1"},
+			{"START", "0", "FFD", "0", "1"},
+			{"USE", "0", "FFE", "0", "1"},
+			{"WORD", "0", "FFF", "3", "1"}
 
 		};
 	
@@ -184,11 +183,31 @@ public class OPTAB {
 		// 변경??
 		for(int i=0; i<this.OPCODE.length; i++) {
 			if(opcodeHex.equals(this.OPCODE[i][2])) {
-				operandnumber = Integer.parseInt(this.OPCODE[i][1]);
+				operandnumber = Integer.parseInt(this.OPCODE[i][4]);
 				break;
 			}
 		}
 		
 		return operandnumber;
+	}
+	
+	public int getOffset(int opcodeInt) {
+		int offset = 0;
+		String opcodeHex = "";
+		if(opcodeInt < 16) 
+			opcodeHex = "0" + Integer.toHexString(opcodeInt).toUpperCase();
+		else 
+			opcodeHex = Integer.toHexString(opcodeInt).toUpperCase();
+		
+		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
+		// 변경??
+		for(int i=0; i<this.OPCODE.length; i++) {
+			if(opcodeHex.equals(this.OPCODE[i][2])) {
+				offset = Integer.parseInt(this.OPCODE[i][3]);
+				break;
+			}
+		}
+		
+		return offset;
 	}
 }
