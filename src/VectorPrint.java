@@ -25,19 +25,19 @@ public class VectorPrint extends CodeLineDTO {
 				+"\tOpcode"
 				+"\tOperand1"
 				+"\tOperand2"
-				+"\tComments"
+				//+"\tComments"
 		);
 		
 		for(int i=0; i<vector.size(); i++) {
 			CodeLineDTO v = vector.get(i);
 			
 			System.out.println(i+":"
-								+" "+v.getAddress()
+								+" "+Integer.toHexString(v.getAddress()).toUpperCase()
 								+"\t"+v.getLabel()
 								+"\t"+v.getOpcode()
 								+"\t"+v.getOperand1()
 								+"\t"+v.getOperand2()
-								+"\t"+v.getLineString()
+								//+"\t"+v.getLineString()
 			);
 		}		
 	}
