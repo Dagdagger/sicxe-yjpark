@@ -1,7 +1,5 @@
 import java.io.*;
 import java.util.*;
-import java.util.regex.*;
-
 import sp.interfacepack.*;
 import sp.dtopack.*;
 
@@ -105,7 +103,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 					case 2:
 						// OPERAND
 						
-						// OPERAND1, OPERAND2(@, #, =)
+						// OPERAND1(@, #, =), OPERAND2
 						// 로 구분하여 저장
 						if(tmpLine[i].matches("^\\@.*") ||
 							tmpLine[i].matches("^\\#.*") ||
@@ -146,7 +144,6 @@ public class ParseProcessor implements XEToyAssembler2 {
 			e.printStackTrace();
 		}
 		
-		
 		// 해당 vertor를 반환한다.
 		return CLDTO;
 	}
@@ -162,13 +159,16 @@ public class ParseProcessor implements XEToyAssembler2 {
 //		Vector<CodeLineDTO> IDTO = new Vector<CodeLineDTO>();
 		CodeLineDTO im = new CodeLineDTO();
 
-		LOCCTR LOCCTR = new LOCCTR();
+//		LOCCTR LOCCTR = new LOCCTR();
+		
+		int locctr = 0x0;	// location counter 초기화
+		int locctrMax = 65535; // FFFF 메모리 주소 최대값
 		
 		String label = "";
 		String opcode = "";
 		String operand = "";
 		
-		String pgname = "";
+//		String pgname = "";
 		int formattype = 0;
 		
 //		VectorPrint vp = new VectorPrint();
@@ -185,7 +185,9 @@ public class ParseProcessor implements XEToyAssembler2 {
 			// OPCODE 검색을 위한 instance 생성
 			OPTAB ot = new OPTAB();
 			
-			formattype = ot.getFormatType(c.getOpcode());
+			// 주석인 경우 다음 라인으로 넘어간다
+			if(c.getLineString() != null && c.getLineString().equals("."))
+				continue;
 
 			// OPCODE & OPERAND
 			if(c.getOperand1() == null) {
@@ -200,15 +202,11 @@ public class ParseProcessor implements XEToyAssembler2 {
 				// 
 				formattype = 4;
 				
-			} else if(c.getOperand1().equals("@")) {
-				opcode = ot.getMNEMONIC(c.getOpcode());
-				operand = c.getOperand1()+c.getOperand2();
-				
-			} else if(c.getOperand1().equals("#")) {
-				opcode = ot.getMNEMONIC(c.getOpcode());
-				operand = c.getOperand1()+c.getOperand2();
-				
-			} else if(c.getOperand1().equals("=")) {
+			} else if(c.getOperand1().equals("@")
+						|| (c.getOperand1().equals("#"))
+						|| (c.getOperand1().equals("="))
+					)
+			{
 				opcode = ot.getMNEMONIC(c.getOpcode());
 				operand = c.getOperand1()+c.getOperand2();
 				
@@ -217,21 +215,32 @@ public class ParseProcessor implements XEToyAssembler2 {
 				operand = c.getOperand2();
 			}
 			
-			// 
-			if(opcode.equals("START")) {
+			if((formattype = ot.getFormatType(c.getOpcode())) == 0) {				
+				// 프로그램의 시작
+				if(opcode.equals("START")) {
+					
+//					pgname = label;
+//					LOCCTR.setLOCCTR(operand);
+					// 시작주소 설정
+					locctr = Integer.parseInt(operand);
 				
-				pgname = label;
-				LOCCTR.setLOCCTR(operand);
+				// 프로그램의 끝
+				} else if(opcode.equals("END")) {
+					
+				
+				}
+			} else {
+				// CodeLineDTO 에 주소값 저장
+				c.setAddress(locctr);
+				
+				// formattype 길이만큼 location counter 증가
+				locctr += formattype;
 			}
-			
-			c.setAddress(LOCCTR.getLOCCTR());
-			
-			// formattype 길이만큼 LOCCTR을 증가
-			LOCCTR.addLOCCTR(formattype);
 			
 			////////////////
 //			System.out.println(LOCCTR.getLOCCTR());
 			
+			// 현재 element를 추가된 정보로 변경한다
 			CLDTO.setElementAt(c, i);
 		}
 		

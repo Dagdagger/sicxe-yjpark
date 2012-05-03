@@ -40,6 +40,8 @@ public class yjparkAssem2 {
 //		CLDTO = pp.parseData(ifp);
 		CLDTO = pp.changeObjectCode(pp.changeImmediateCode(pp.parseData(ifp)));
 		
+//		System.out.println(0x00);
+//		System.out.println(0x0);
 		
 		// 반환된 object program 을 출력 파일에 기록
 		// 파일 출력을 실패하면 오류 메세지 출력

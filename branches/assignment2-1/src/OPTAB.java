@@ -4,8 +4,7 @@ public class OPTAB {
 	// 변경되지 않는 고정 정보이므로 2차원 배열에 저장한다.
 	private String[][] OPCODE = {
 			// Directive = 0
-			// M      F  H   O  N
-			//               ?? ??
+			// Memonic, Format, Hexadeciaml, Offset, OperandNumber
 			// --------------------
 			{"ADD", "3", "18", "3", "1"},
 			{"ADDF", "3", "58", "3", "1"},
@@ -74,14 +73,14 @@ public class OPTAB {
 			{"EQU", "0", "5", "0", "1"},
 			{"EXTDEF", "0", "6", "0", "1"},
 			{"EXTREF", "0", "7", "0", "1"},
-			{"LTORG", "0", "E", "0", "0"},
-			{"NOBASE", "0", "8", "0", "0"},
-			{"ORG", "0", "9", "0", "1"},
-			{"RESB", "0", "A", "0", "1"},
-			{"RESW", "0", "B", "0", "1"},
-			{"START", "0", "F", "0", "1"},
-			{"USE", "0", "C", "0", "1"},
-			{"WORD", "0", "D", "3", "1"}
+			{"LTORG", "0", "8", "0", "0"},
+			{"NOBASE", "0", "9", "0", "0"},
+			{"ORG", "0", "A", "0", "1"},
+			{"RESB", "0", "B", "0", "1"},
+			{"RESW", "0", "C", "0", "1"},
+			{"START", "0", "D", "0", "1"},
+			{"USE", "0", "E", "0", "1"},
+			{"WORD", "0", "F", "3", "1"}
 
 		};
 	
@@ -133,13 +132,18 @@ public class OPTAB {
 	}
 	
 	public String getMNEMONIC(int opcodeInt) {
+		
 		String mnemonic = "";
-		String opcodeHex = Integer.toHexString(opcodeInt);
+		String opcodeHex = "";
+		if(opcodeInt < 16) 
+			opcodeHex = "0" + Integer.toHexString(opcodeInt).toUpperCase();
+		else 
+			opcodeHex = Integer.toHexString(opcodeInt).toUpperCase();
 
 		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
 		// 변경??
 		for(int i=0; i<this.OPCODE.length; i++) {
-			if(opcodeHex.toUpperCase().equals(this.OPCODE[i][2])) {
+			if(opcodeHex.equals(this.OPCODE[i][2])) {
 				mnemonic = this.OPCODE[i][0];
 				break;
 			}
@@ -150,7 +154,11 @@ public class OPTAB {
 	
 	public int getFormatType(int opcodeInt) {
 		int formattype = 0;
-		String opcodeHex = Integer.toHexString(opcodeInt);
+		String opcodeHex = "";
+		if(opcodeInt < 16) 
+			opcodeHex = "0" + Integer.toHexString(opcodeInt).toUpperCase();
+		else 
+			opcodeHex = Integer.toHexString(opcodeInt).toUpperCase();
 		
 		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
 		// 변경??
@@ -162,5 +170,25 @@ public class OPTAB {
 		}
 		
 		return formattype;
+	}
+	
+	public int getOperandNumber(int opcodeInt) {
+		int operandnumber = 0;
+		String opcodeHex = "";
+		if(opcodeInt < 16) 
+			opcodeHex = "0" + Integer.toHexString(opcodeInt).toUpperCase();
+		else 
+			opcodeHex = Integer.toHexString(opcodeInt).toUpperCase();
+		
+		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
+		// 변경??
+		for(int i=0; i<this.OPCODE.length; i++) {
+			if(opcodeHex.equals(this.OPCODE[i][2])) {
+				operandnumber = Integer.parseInt(this.OPCODE[i][1]);
+				break;
+			}
+		}
+		
+		return operandnumber;
 	}
 }
