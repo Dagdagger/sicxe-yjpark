@@ -53,14 +53,14 @@ public class yjparkAssem2 {
 			// 출력 파일 열기
 			ofp = new File("output.txt");
 			
-			// 파일 출력을 위한 instance 생성
-			VectorPrint vp = new VectorPrint();
-			
-			// 파일 출력을 위한 인자 값 전달
-//			vp.printObjectProg(ofp, CLDTO);
-			
-			// 화면 출력용
-			vp.PrintCLDTO(CLDTO);
+//			// 파일 출력을 위한 instance 생성
+//			VectorPrint vp = new VectorPrint();
+//			
+//			// 파일 출력을 위한 인자 값 전달
+////			vp.printObjectProg(ofp, CLDTO);
+//			
+//			// 화면 출력용
+//			vp.PrintCLDTO(CLDTO);
 			
 		} catch (Exception e) {
 			System.out.println("파일출력을 실패했습니다.");
