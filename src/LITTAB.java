@@ -1,8 +1,16 @@
 
 public class LITTAB {
-	String literalName, operandValue;
-	int length, address;
+	private String literalName, operandValue;
+	private int idx, length, address;
 	
+	public LITTAB() {}
+	
+	public int getIdx() {
+		return idx;
+	}
+	public void setIdx(int idx) {
+		this.idx = idx;
+	}
 	public String getLiteralName() {
 		return literalName;
 	}
@@ -28,12 +36,13 @@ public class LITTAB {
 			}	
 			
 		} else if(valueType.equals("X")) { // Hexadecimal 인 경우로 해당 hex 값으로 value 설정
-			this.length = literalName.split("'")[1].length();
+			this.length = literalName.split("'")[1].length()/2;	// hex string 2자리가 1byte 이므로 05.length()/2 = 1byte
 			
 			this.operandValue = literalName.split("'")[1];
 			
-		} else {
-			
+		} else { // 나머지 경우 (숫자 등)
+			this.length = literalName.length();
+			this.operandValue = literalName;
 		}
 
 	}
@@ -55,5 +64,4 @@ public class LITTAB {
 	public void setAddress(int address) {
 		this.address = address;
 	}
-	
 }

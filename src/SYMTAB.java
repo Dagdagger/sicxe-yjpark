@@ -8,7 +8,7 @@ public class SYMTAB {
 	// Address TYPE: Absolute / Relative
 	private char TYPE;
 	// Pass1 에서 결정된 ADDRESS VALUE
-	private String VALUE;
+	private int VALUE;
 	
 	// 기본 생성자
 	public SYMTAB() {}
@@ -31,10 +31,10 @@ public class SYMTAB {
 	public void setTYPE(char type) {
 		TYPE = type;
 	}
-	public String getVALUE() {
+	public int getVALUE() {
 		return VALUE;
 	}
-	public void setVALUE(String value) {
+	public void setVALUE(int value) {
 		VALUE = value;
-	}	
+	}
 }
