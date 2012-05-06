@@ -118,7 +118,7 @@ public class VectorPrint extends CodeLineDTO {
 	}
 	
 	// operand format
-	public String operandFormat(String operand1, String operand2){
+	public String operandFormat(String operand1, String operand2) {
 		if(operand1 == null)
 			operand1 = "";
 		if(operand2 == null)

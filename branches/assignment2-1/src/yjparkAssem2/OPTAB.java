@@ -4,7 +4,7 @@ package yjparkAssem2;
 public class OPTAB {
 	// 변경되지 않는 고정 정보이므로 2차원 배열에 저장한다.
 	private String[][] OPCODE = {
-			// Directive = 0
+			// Directive Format = 0
 			// Memonic, Format, Hexadecimal, Offset, OperandNumber
 			// --------------------
 			{"ADD", "3", "18", "3", "1"},
@@ -146,6 +146,7 @@ public class OPTAB {
 		return ascii;
 	}
 	
+	// parameter로 입력된 opcode의 mnemonic을 찾아서 반환한다.
 	public String getMNEMONIC(int opcodeInt) {
 		
 		String mnemonic = "";
@@ -167,6 +168,7 @@ public class OPTAB {
 		return mnemonic;
 	}
 	
+	// parameter로 입력된 opcode의 파일 포맷을 반환한다.
 	public int getFormatType(int opcodeInt) {
 		int formattype = 0;
 		String opcodeHex = "";
@@ -187,6 +189,7 @@ public class OPTAB {
 		return formattype;
 	}
 	
+	// parameter로 입력된 opcode의 operand 갯수를 반환한다.
 	public int getOperandNumber(int opcodeInt) {
 		int operandnumber = 0;
 		String opcodeHex = "";
@@ -207,6 +210,7 @@ public class OPTAB {
 		return operandnumber;
 	}
 	
+	// parameter로 입력된 opcode의 offset 을 반환한다.
 	public int getOffset(int opcodeInt) {
 		int offset = 0;
 		String opcodeHex = "";
@@ -227,7 +231,7 @@ public class OPTAB {
 		return offset;
 	}
 	
-	// parameter로 입력된 mnemonic의 number를 찾아서 반환한다.
+	// parameter로 입력된 mnemonic의 register number를 찾아서 반환한다.
 	public String getRegisterNumber(String mnemonic) {
 		// "0" 으로 초기화, register 없는 경우는 "0"
 		String number = "0";
@@ -245,7 +249,7 @@ public class OPTAB {
 		return number;
 	}
 	
-	// parameter로 입력된 mnemonic의 number를 찾아서 반환한다.
+	// parameter로 입력된 number의 register symbol 을 찾아서 반환한다.
 	public String getRegister(String number) {
 		String mnemonic = "";
 
