@@ -10,11 +10,15 @@ public class ParseProcessor implements XEToyAssembler2 {
 	
 	// SYMTAB 생성하기 위한 vector 선언
 	// 각 method 에서 공유하기 위해 클래스 변수로 선언
-	// ?
 	static Vector<SYMTAB> STAB = new Vector<SYMTAB>();
 	
 	// ESTAB
 	static Vector<ESTAB> ESTAB = new Vector<ESTAB>();
+	
+	// address, objectCode
+	static Vector<ObjectCode> OCODE = new Vector<ObjectCode>();
+	
+	VectorPrint pv = new VectorPrint();
 	
 	// 기본 생성자
 	public ParseProcessor() {}
@@ -51,6 +55,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 			STAB.clear();
 			ESTAB.clear();
 			CLDTO.clear();
+			OCODE.clear();
 			
 			// 입력 파일을 라인단위로 읽는다.
 			while((line = reader.readLine()) != null) {
@@ -61,13 +66,25 @@ public class ParseProcessor implements XEToyAssembler2 {
 				CodeLineDTO c = new CodeLineDTO();
 				SYMTAB s = new SYMTAB();
 				
+				// 초기화
+				c.setAddress(0xFFFF);
+//				c.setLabel(0xFFFF);	// label은 idx로 관리
+				c.setOpcode(0xFFFF);
+				c.setOperand1("");
+				c.setOperand2("");
+				c.setLineString("");
+				
 				// 1개 라인별로 해당 항목은 탭("\t") 으로 구분한다.
 				tmpLine = line.split("\t");
 				for(int i=0;i<tmpLine.length;i++) {
 					
 					// 주석 라인의 경우 comment 에 저장하고 다음 라인으로 이동
 					if(tmpLine[i].equals(".")) {
-						c.setLineString(tmpLine[i]);
+						String comment = "";
+						for(int ci = i; ci<tmpLine.length; ci++) {
+							comment += tmpLine[ci]+"\t";
+						}
+						c.setLineString(comment);
 						break;
 					}
 					
@@ -80,9 +97,6 @@ public class ParseProcessor implements XEToyAssembler2 {
 					switch(i) {
 					case 0:
 						// LABEL
-//						if(tmpLine[i].isEmpty()) {
-//							c.setLabel(99);
-//						}
 						// SYMTAB 에 저장 및 idx 증가
 						s.setIdx(sIdx++);
 						s.setSYMBOL(tmpLine[i]);
@@ -175,16 +189,13 @@ public class ParseProcessor implements XEToyAssembler2 {
 		Vector<CodeLineDTO> CLDTO = vector;
 		Vector<LITTAB> LITTAB = new Vector<LITTAB>();
 		
-		// Immediate Data(화면출력)을 처리하기 위한
-		// Immediate Data의 형식은 CodeLineDTO 와 동일
-//		Vector<CodeLineDTO> IDTO = new Vector<CodeLineDTO>();
-		
 		CodeLineDTO im = new CodeLineDTO();
-
-//		LOCCTR LOCCTR = new LOCCTR();
 		
-		int locctr = 0x0;	// location counter 초기화
-		int locctrMax = 65535; // FFFF 메모리 주소 최대값
+		int locctr = 0;	// location counter 초기화
+//		int locctrMax = 65535; // FFFF 메모리 주소 최대값
+		
+		// for ObjectCode
+		int csectIdx = 0;
 		
 		String label = "";
 		String opcode = "";
@@ -193,11 +204,9 @@ public class ParseProcessor implements XEToyAssembler2 {
 //		String pgname = "";
 		int formattype = 0;
 		
-		// for LITTAB
-//		int lIdx = 0;
-		
 //		VectorPrint vp = new VectorPrint();
 //		vp.PrintIFILE(IFILE);
+		
 		
 		for(int i=0; i<vector.size(); i++) {
 			CodeLineDTO c = vector.get(i);
@@ -276,6 +285,19 @@ public class ParseProcessor implements XEToyAssembler2 {
 				if(opcode.equals("START")) {
 					// 시작주소 설정
 					locctr = Integer.parseInt(operand);
+					
+					// Control Section 설정
+					SYMTAB st = STAB.get(c.getLabel());
+					csectIdx = st.getIdx();
+				} else if(opcode.equals("CSECT")) {
+					// location counter 초기화
+					locctr = 0;
+					c.setAddress(locctr);
+					
+					// Control Section 설정
+					SYMTAB st = STAB.get(c.getLabel());
+					csectIdx = st.getIdx();
+					
 				} else if(opcode.equals("EXTDEF") || opcode.equals("EXTREF")) {
 					
 				} else if(opcode.equals("BYTE") || opcode.equals("WORD")) {
@@ -284,29 +306,68 @@ public class ParseProcessor implements XEToyAssembler2 {
 					
 					
 					if(operand.matches(".*\\'.*")) {
-						// case X'F1'
-						locctr += (ot.getOffset(c.getOpcode()) * operand.split("'")[1].length()/2);
-					
-					
-					// case BUFEND-BUFFER
-					// objectCode 에 대한 고려..	
-					// OPERAND가 EXTREF에 포함 되어 있으면 objectCode는 '000000' 처리
-					// operand에 -, + 포함된 경우
-					// 보완사항: 모든 경우의 수에 대한 계산은 추후에..
-					} else if(operand.matches(".*-.*")) {
-						String[] operandStrAr = operand.split("-");
+						// case X'F1' 인 경우 해당 문자 값 직접 할당
 
+						// objectCode 추가
+						ObjectCode objectCode = new ObjectCode();
+						objectCode.setCsectIdx(csectIdx);
+						objectCode.setAddress(locctr);
+						
+						String[] splitStr = operand.split("'");
+
+						// X 인 경우는 hex 값 직접 할당 하지만, C 인 경우는 해당 ASCII 값을 추가
+						if(splitStr[0].equals("X")) {
+							// 해당 Directive 와 hex 문자 값 길이 의 곱만큼 location counter 증가
+							// ex: F1 -> F1(16진수), 길이 1byte(4bit * 2) 이므로 /2 처리
+							locctr += (ot.getOffset(c.getOpcode()) * splitStr[1].length()/2);
+							objectCode.setObjectCode(splitStr[1]);					
+						} else if(splitStr[0].equals("C")) {
+							// 해당 ASCII 값 추가 및 해당 길이 만큼 location counter 증가
+							// ex: EOF -> 454F46(16진수), 길이 3bytes
+							locctr += (ot.getOffset(c.getOpcode()) * splitStr[1].length());
+							
+							String splitObjectCodeStr = "";
+							System.out.println(Integer.toHexString(Integer.parseInt(splitStr[1])));
+							for(int si = 0; si<splitStr[1].length(); si++) {
+								splitObjectCodeStr += Integer.toHexString(Integer.parseInt(splitStr[1].substring(si,si+1), 16));
+							}
+							objectCode.setObjectCode(splitObjectCodeStr);
+						}
+						
+						OCODE.add(objectCode);
+						
+					} else if(operand.matches(".*-.*")) {
+						// case BUFEND-BUFFER
+						// objectCode 에 대한 고려..	
+						// OPERAND가 EXTREF에 포함 되어 있으면 objectCode는 '000000' 처리
+						// operand에 -, + 포함된 경우
+						// 보완사항: 모든 경우의 수에 대한 계산은 추후에..
+						
+						String[] operandStrAr = operand.split("-");
+						
+						// EXTREF 여부 확인
+						boolean isExt = false;
+						
 						// 하나라도 EXTREF 에 있으면 objectCode는 알 수 없다
 						for(int sti = 0; sti<operandStrAr.length; sti++) {
 							for(int esi = 0; esi<ESTAB.size(); esi++) {
 								ESTAB est = ESTAB.get(esi);
 								
 								if(operandStrAr[sti].equals(est.getSymbol())) {
-								
-									// objectCode = "000000";
+									// objectCode 추가
+									ObjectCode objectCode = new ObjectCode();
+									objectCode.setCsectIdx(csectIdx);
+									objectCode.setAddress(locctr);
+									objectCode.setObjectCode("000000");
+									OCODE.add(objectCode);
+									isExt = true;
 									break;
 								}
 							}
+							
+							// 하나라도 있으면 for 문 종료
+							if(isExt)
+								break;
 						}
 					}
 					
@@ -323,6 +384,13 @@ public class ParseProcessor implements XEToyAssembler2 {
 					for(int i1=0; i1<LITTAB.size(); i1++) {
 						LITTAB lit = LITTAB.get(i1);
 
+						// objectCode 추가
+						ObjectCode objectCode = new ObjectCode();
+						objectCode.setCsectIdx(csectIdx);
+						objectCode.setAddress(locctr);
+						objectCode.setObjectCode(lit.getOperandValue());
+						OCODE.add(objectCode);
+						
 						// LITTAB address 추가
 						lit.setAddress(locctr);
 						
@@ -331,23 +399,21 @@ public class ParseProcessor implements XEToyAssembler2 {
 						addCldto.setAddress(locctr);
 						addCldto.setLabel(0x2A); // * 으로 설정
 						addCldto.setOpcode(lit.getIdx()); // LITTAB 의 idx 값으로 설정
-						//
-						addCldto.setLineString("=========11");
+						addCldto.setLineString("");
 						
+						// location counter literal 길이만큼 증가
 						locctr += lit.getLength();
 						
 					}
 
 					CLDTO.setElementAt(c, i);
+					
 					// 기존 vector에 추가 삽입
 					CLDTO.insertElementAt(addCldto, ++i);
-//					i++;	// 기존 vector index 증가
+					
+					// 다음 라인으로 이동
 					continue;
 					
-				} else if(opcode.equals("CSECT")) {
-					// location counter 초기화
-					locctr = 0;
-					c.setAddress(locctr);
 				} else if(opcode.equals("EQU")) {
 					
 					// operand에 -, + 포함된 경우
@@ -356,16 +422,13 @@ public class ParseProcessor implements XEToyAssembler2 {
 						// Absolte Expression 계산
 						symbolType = 'A';
 						String[] operandStrAr = operand.split("-");
-//						Integer[] operandIntAr = null;
 						int operandInt1=0, operandInt2=0;
 						
 						for(int si = 0; si<STAB.size(); si++) {
 							SYMTAB st = STAB.get(si);
 							if(st.getSYMBOL().equals(operandStrAr[0])) {
-//								operandIntAr[0] = st.getVALUE();
 								operandInt1 = st.getVALUE();
 							} else if(st.getSYMBOL().equals(operandStrAr[1])) {
-//								operandIntAr[0] = st.getVALUE();
 								operandInt2 = st.getVALUE();
 							}
 						}
@@ -388,13 +451,22 @@ public class ParseProcessor implements XEToyAssembler2 {
 						// 분리예정
 						// 할당된 주소 없을 경우
 						if(lit.getAddress() == 0) {
+							// objectCode 추가
+							ObjectCode objectCode = new ObjectCode();
+							objectCode.setCsectIdx(csectIdx);
+							objectCode.setAddress(locctr);
+							objectCode.setObjectCode(lit.getOperandValue());
+							OCODE.add(objectCode);
+							
 							// immediate line 추가
 							addCldto.setAddress(locctr);
 							addCldto.setLabel(0x2A); // * 으로 설정
 							addCldto.setOpcode(lit.getIdx()); // LITTAB 의 idx 값으로 설정
-							//
-							addCldto.setLineString("=========22");
+							addCldto.setLineString("");
 	
+							// literal 에 주소 추가
+							lit.setAddress(locctr);
+							
 							locctr += lit.getLength();
 						}
 						
@@ -403,14 +475,15 @@ public class ParseProcessor implements XEToyAssembler2 {
 					// 현재 element를 추가된 정보로 변경한다
 					CLDTO.setElementAt(c, i);
 					
-					// 기존 vector에 추가 삽입
+					// 기존 vector에 다음줄에 추가 삽입
 					CLDTO.add(++i, addCldto);
 					
-//					CLDTO.insertElementAt(addCldto, ++i);
-
 					break;
 				}
-			} else {	// Instruction 인 경우
+			} else {
+				////////////////////////////////////////////
+				// Instruction 인 경우
+				
 				// CodeLineDTO 에 주소값 저장
 				c.setAddress(locctr);
 				
@@ -426,10 +499,165 @@ public class ParseProcessor implements XEToyAssembler2 {
 				s.setTYPE(symbolType);
 				s.setVALUE(c.getAddress());
 			}
+		}	
+		
+		////////////////////////////////////////////////////////
+		// Pass2-objectCode 생성
+		// location counter, control section 초기화
+		locctr = 0;
+		csectIdx = 0;
+		
+		for(int i=0; i<vector.size(); i++) {
+			CodeLineDTO c = vector.get(i);
+			// OPCODE 검색을 위한 instance 생성
+			OPTAB ot = new OPTAB();
+			
+			// opcode 가져오기
+			opcode = ot.getMNEMONIC(c.getOpcode());
+			
+			// 주석인 경우 다음 라인으로 넘어간다
+			if(c.getLineString() != null && c.getLineString().equals("."))
+				continue;
+
+			// 명령어 형식 설정
+			formattype = ot.getFormatType(c.getOpcode());
+			
+			// 4형식 설정
+			if(c.getOperand1() != null && c.getOperand1().equals("+"))
+				formattype = 4;
+			
+			// '*' 이 아닌 경우-literal에 의해 추가 되었으므로 SYMTAB 인덱스를 초과한다
+			if(c.getLabel() != 0x2A) {
+				
+				// symbol 가져오기
+				SYMTAB st = STAB.get(c.getLabel());
+				String symbol = st.getSYMBOL();	
+				
+				// opcode 가 "START" 또는 "CSECT" 인 경우만 CSECT 시작
+				// Control Section 설정
+				if(opcode.equals("START") || opcode.equals("CSECT"))
+					csectIdx = st.getIdx();
+			}
+			
+			// Directive 가 아닌 경우, 즉 Instuction 인 경우
+			if(formattype != 0) {
+				
+				// literal label 은 제외
+				// '*' == 0x2A(ASCII code-16진수)
+				if(c.getOperand1() != null && c.getLabel() == 0x2A)
+					continue;
+				
+				String objectCodeStr = "";
+				
+				// formattype에 따른 ObjectCodeByte 배열 길이 설정
+				ObjectCode objectCode = new ObjectCode(formattype);
+
+				// formattype: 1~4
+				// opcode-instruction 에 대한 packing 후 [0] 에 입력
+				objectCode.setObjectCodeByte(0, objectCode.packing(c.getOpcode()));
+				
+				switch(formattype) {
+				case 2:
+					objectCodeStr = Integer.toHexString(c.getOpcode()).toUpperCase();
+					
+					// operand 의 register number 가져오기
+					for(int ri=0; ri<ot.getOperandNumber(c.getOpcode()); ri++) {
+						if(c.getOperand2().matches(".+\\,.+"))
+							// operand register 가 2개인 경우
+							objectCodeStr += ot.getRegisterNumber(c.getOperand2().split(",")[ri]);
+						else
+							// operand register 가 1개인 경우
+							objectCodeStr += ot.getRegisterNumber(c.getOperand2())+"0";
+					}
+					
+					break;
+					
+				case 3: case 4:
+					// formattype: 3~4
+					// 00ni 에 대한 bit 설정 후 [0] 에 입력
+					objectCode.setObjectCodeByte(0, objectCode.setAddressingMode(c.getOperand1()));
+					
+					// format type: 3~4
+					// xbpe 에 대한 bit 설정 후 [1] 에 입력
+					// operand 있는 경우만
+					if(ot.getOperandNumber(c.getOpcode()) > 0) {
+						objectCode.setObjectCodeByte(1, objectCode.setRelative(c.getOperand1(), c.getOperand2()));
+
+						// simple addressing(0011) && 3형식 인 경우
+						// displacement 계산
+						if(c.getOperand2() != null && (objectCode.getObjectCodeByte()[0] & 3) == 3 && formattype == 3) {
+							int sVar = 0;
+	
+							// literal 은 LITTAB에서 찾고, 나머지는 SYMTAB 에서 찾는다
+							if(c.getOperand1().equals("=")) {
+								for(int li = 0; li<LITTAB.size(); li++) {
+									LITTAB lt = LITTAB.get(li);
+									if(c.getOperand2().equals(lt.getLiteralName())) {
+										sVar = lt.getAddress();
+										break;
+									}
+								}
+								
+							} else {
+								for(int si=0; si<STAB.size(); si++) {
+									SYMTAB stmp = STAB.get(si);
+									if(c.getOperand2().equals(stmp.getSYMBOL()) && stmp.getTYPE() == 'R') {
+										// operand2 symbol의 address 찾기
+										// relative type 만
+										sVar = stmp.getVALUE();
+										break;
+									}
+								}
+							}
+							
+							// PC relative 연산
+							locctr = c.getAddress() + ot.getFormatType(c.getOpcode());
+							objectCode.setDisplacement(sVar - locctr);
+							
+						} else if(c.getOperand2() != null && (objectCode.getObjectCodeByte()[0] & 1) == 1 
+								&& formattype == 3 && ot.getOperandNumber(c.getOpcode()) != 0) {
+							// immediate addressing(0001) && 3형식 인 경우
+							objectCode.setDisplacement(Integer.parseInt(c.getOperand2()));
+						}
+					}
+					
+					// format type: 4
+					// address 연산 
+					// Extended 인 경우 
+					if(c.getOperand1() != null && c.getOperand1().equals("+") && formattype == 4) {
+						objectCode.setObjectCodeByte(1, objectCode.getObjectCodeByte()[1]);
+						objectCode.setObjectCodeByte(2, (char)0);
+						objectCode.setObjectCodeByte(3, (char)0);
+					}
+					
+					for(int si=0; si<formattype; si++) {
+						String hexStr = Integer.toHexString(objectCode.getObjectCodeByte()[si]).toUpperCase();
+						
+						// 길이가 1인 경우 앞에 "0"을 붙여준다
+						// "0" -> "00"
+						if(hexStr.length() < 2)
+							objectCodeStr += "0";
+						objectCodeStr += hexStr;
+					}
+					
+					break;
+				}
+				
+				// objectCode 추가
+				objectCode.setCsectIdx(csectIdx);
+				objectCode.setAddress(c.getAddress());
+				objectCode.setObjectCode(objectCodeStr);
+				OCODE.add(objectCode);
+				
+			}
 		}
 		
-		VectorPrint pv = new VectorPrint();
-		pv.PrintImmediate(CLDTO, STAB);
+//		pv.PrintCLDTO(CLDTO);
+		pv.PrintImmediate(CLDTO, STAB, LITTAB, OCODE);
+//		pv.PrintESTAB(ESTAB);
+//		pv.PrintLITTAB(LITTAB);
+//		pv.PrintSTAB(STAB);
+//		pv.PrintObjectCode(OCODE);
 		
 		// 해당 vertor를 반환한다.
 		return CLDTO;

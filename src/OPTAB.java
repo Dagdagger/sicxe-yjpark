@@ -83,6 +83,20 @@ public class OPTAB {
 
 		};
 	
+	private String[][] Register = {
+			// Memonic, Number
+			// --------------------
+			{"A", "0"},
+			{"X", "1"},
+			{"L", "2"},
+			{"B", "3"},
+			{"S", "4"},
+			{"T", "5"},
+			{"F", "6"},
+			{"PC", "8"},
+			{"SW", "9"}
+	};
+	
 	// 기본 생성자
 	public OPTAB () {}
 	
@@ -209,5 +223,40 @@ public class OPTAB {
 		}
 		
 		return offset;
+	}
+	
+	// parameter로 입력된 mnemonic의 number를 찾아서 반환한다.
+	public String getRegisterNumber(String mnemonic) {
+		// "0" 으로 초기화, register 없는 경우는 "0"
+		String number = "0";
+
+		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
+		// 알파벳 첫글자 인덱스 검색으로 변경??
+		for(int i=0; i<this.Register.length; i++) {
+			if(mnemonic.equals(this.Register[i][0])) {
+				number = this.Register[i][1];
+				break;
+			}
+		}
+
+		// 검색된 String number 값을 반환한다.
+		return number;
+	}
+	
+	// parameter로 입력된 mnemonic의 number를 찾아서 반환한다.
+	public String getRegister(String number) {
+		String mnemonic = "";
+
+		// 대상 집합이 크지 않으므로 순차검색을 수행한다.
+		// 알파벳 첫글자 인덱스 검색으로 변경??
+		for(int i=0; i<this.Register.length; i++) {
+			if(mnemonic.equals(this.Register[i][1])) {
+				number = this.Register[i][0];
+				break;
+			}
+		}
+
+		// 검색된 String number 값을 반환한다.
+		return mnemonic;
 	}
 }
