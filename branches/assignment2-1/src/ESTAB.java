@@ -41,9 +41,5 @@ public class ESTAB {
 	public void setLength(int length) {
 		this.length = length;
 	}
-
-	
-	
-	
 	
 }

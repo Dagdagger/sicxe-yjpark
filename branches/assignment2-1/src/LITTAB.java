@@ -13,7 +13,7 @@ public class LITTAB {
 	}
 	public String getLiteralName() {
 		return literalName;
-	}
+	}	
 	public void setLiteralName(String literalName) {
 		this.literalName = literalName;
 		String valueType = literalName.substring(0,1);

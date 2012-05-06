@@ -43,6 +43,13 @@ public class VectorPrint extends CodeLineDTO {
 	}
 	
 	public void PrintSTAB(Vector<SYMTAB> vector) {
+	
+		System.out.println("line:"
+				+" idx"
+				+"\tSYMBOL"
+				+"\tTYPE"
+				+"\tVALUE"
+		);
 		
 		for(int i=0; i<vector.size(); i++) {
 			SYMTAB v = vector.get(i);
@@ -57,6 +64,13 @@ public class VectorPrint extends CodeLineDTO {
 	}	
 
 	public void PrintESTAB(Vector<ESTAB> vector) {
+	
+		System.out.println("line:"
+				+" CSECT"
+				+"\tSymbol"
+				+"\tAddress"
+				+"\tLength"
+		);
 		
 		for(int i=0; i<vector.size(); i++) {
 			ESTAB v = vector.get(i);
@@ -72,6 +86,14 @@ public class VectorPrint extends CodeLineDTO {
 	
 	public void PrintLITTAB(Vector<LITTAB> vector) {
 		
+		System.out.println("line:"
+				+" idx"
+				+"\tAddress"
+				+"\tOpValue"
+				+"\tLength"
+				+"\tLitName"
+		);
+		
 		for(int i=0; i<vector.size(); i++) {
 			LITTAB v = vector.get(i);
 			
@@ -84,20 +106,99 @@ public class VectorPrint extends CodeLineDTO {
 			);
 		}		
 	}	
+
+	public void PrintObjectCode(Vector<ObjectCode> vector) {
+		
+		System.out.println("line:"
+				+" address"
+				+"\tobjectCode"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			ObjectCode v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+v.getCsectIdx()
+								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
+								+"\t"+v.getObjectCode()
+			);
+		}		
+	}	
 	
-	// objectCodeList 필요...?
-	public void PrintImmediate(Vector<CodeLineDTO> CLDTO, Vector<SYMTAB> STAB) {
+	public void PrintImmediate(Vector<CodeLineDTO> CLDTO, Vector<SYMTAB> STAB, Vector<LITTAB> LITTAB, Vector<ObjectCode> OCODE) {
+		
+		// control section
+		int csectIdx = 0;
+		
 		for(int i=0; i<CLDTO.size(); i++) {
 			CodeLineDTO v = CLDTO.get(i);
 			OPTAB ot = new OPTAB();
+			String address = "";
+			String label = "";
+			String opcode = "";
+			String objectCode = "";
+		
+			// literal인 경우 LITTAB 정보 가져오기
+			if(labelFormat(STAB, v.getLabel()).equals("*")) {
+				for(int li = 0; li<LITTAB.size(); li++) {
+					LITTAB lt = LITTAB.get(li);
+					if(lt.getIdx() == v.getOpcode())
+						opcode = "="+lt.getLiteralName();
+				}
+			} else {
+				// 아닌 경우 OPTAB 정보 가져오기
+				opcode = ot.getMNEMONIC(v.getOpcode());
+				
+				// '+' 은 opcode에 표시
+				if(v.getOperand1().equals("+"))
+					opcode = "+"+opcode;
+			}
+		
+			// control section 을 설정
+			if(opcode.equals("START") || opcode.equals("CSECT")) {
+				// Control Section 설정
+				SYMTAB st = STAB.get(v.getLabel());
+				csectIdx = st.getIdx();
+			}
+		
+			// Label 정보 가져오기
+			// START 인 경우만 '0' 사용
+			if(v.getLabel() != 0 || opcode.equals("START"))
+				label = labelFormat(STAB, v.getLabel());
 			
-			System.out.println(
-								" "+hexFormat(v.getAddress(), 4)
-//								+"\t"+v.getLabel()
-								+"\t"+labelFormat(STAB, v.getLabel())
-								+"\t"+ot.getMNEMONIC(v.getOpcode())
-								+"\t"+operandFormat(v.getOperand1(), v.getOperand2())
-			);
+			// objectCode 정보 가져오기
+			for(int oi = 0; oi<OCODE.size();oi++) {
+				ObjectCode obCode = OCODE.get(oi);
+				
+				if(csectIdx == obCode.getCsectIdx() && v.getAddress() == obCode.getAddress() && !opcode.equals("CSECT")) {
+//				if( v.getAddress() == obCode.getAddress() && !opcode.equals("CSECT")) {
+					// control section 과 address 가 동일한 경우 objectcode 를 가져온다
+					objectCode = obCode.getObjectCode();
+					break;
+				}
+			}
+			// Address 정보 가져오기
+			// START 인 경우와 첫번째 Instruction만  '0000' 사용
+			if(v.getAddress() != 0xFFFF || opcode.equals("START")) {
+				if(v.getAddress() == 0xFFFF) {
+					address = "0000";
+				} else {
+					address = hexFormat(v.getAddress(), 4);
+				}
+			}
+			
+			// 주석 출력 처리
+			if(v.getLineString() != null && v.getLineString().matches("^\\..+")) {
+				System.out.println("\t"+v.getLineString());
+			} else {
+				System.out.println(
+									address
+									+"\t"+label
+									+"\t"+opcode
+									+"\t"+operandFormat(v.getOperand1(), v.getOperand2())
+									+"\t"+objectCode
+				);
+			}
 		}		
 	}
 
@@ -119,13 +220,12 @@ public class VectorPrint extends CodeLineDTO {
 	// SYMTAB에서 해당 label 찾아서 반환
 	public String labelFormat(Vector<SYMTAB> STAB, int label) {
 		
-		// 개선필요
-		if(label == 0 && !STAB.get(label).equals("START"))
-			return "";
-		else if(label == 42)
+		// '*' == 0x2A (ASCII code-16진수)
+		if(label == 0x2A)
 			return "*";
 		
 		SYMTAB s = STAB.get(label);
+
 		return s.getSYMBOL();
 	}
 	
@@ -135,8 +235,11 @@ public class VectorPrint extends CodeLineDTO {
 		if(operand2 == null)
 			operand2 = "";
 		
-		return operand1.concat(operand2);
-			
+		// '+' 은 opcode에 표시
+		if(!operand1.equals("+"))
+			return operand1.concat(operand2);
+		
+		return operand2;
 	}
 	
 	// Object Program 파일에 출력
