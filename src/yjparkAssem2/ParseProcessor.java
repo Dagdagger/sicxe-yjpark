@@ -10,9 +10,6 @@ import sp.dtopack.*;
 //Parsing 처리 및 Object Program 출력을 위한 Class
 public class ParseProcessor implements XEToyAssembler2 {
 	
-	// 읽어드린 파일 내용을 저장하기 위한 vector 선언
-//	Vector<String> IFILE = new Vector<String>();
-	
 	// SYMTAB 생성하기 위한 vector 선언
 	// 각 method 에서 공유하기 위해 클래스 변수로 선언
 	static Vector<SYMTAB> STAB = new Vector<SYMTAB>();
@@ -199,7 +196,6 @@ public class ParseProcessor implements XEToyAssembler2 {
 		CodeLineDTO im = new CodeLineDTO();
 		
 		int locctr = 0;	// location counter 초기화
-//		int locctrMax = 65535; // FFFF 메모리 주소 최대값
 		
 		// for ObjectCode
 		int csectIdx = 0;
@@ -207,13 +203,8 @@ public class ParseProcessor implements XEToyAssembler2 {
 		String label = "";
 		String opcode = "";
 		String operand = "";
-		
-//		String pgname = "";
+
 		int formattype = 0;
-		
-//		VectorPrint vp = new VectorPrint();
-//		vp.PrintIFILE(IFILE);
-		
 		
 		for(int i=0; i<vector.size(); i++) {
 			CodeLineDTO c = vector.get(i);
@@ -305,8 +296,9 @@ public class ParseProcessor implements XEToyAssembler2 {
 					SYMTAB st = STAB.get(c.getLabel());
 					csectIdx = st.getIdx();
 					
-				} else if(opcode.equals("EXTDEF") || opcode.equals("EXTREF")) {
-					// ESTAB 저장
+//				} else if(opcode.equals("EXTDEF") || opcode.equals("EXTREF")) {
+					// ESTAB에 일괄 저장
+					// 현재로서는 불필요한 단계
 					
 //					String[] operandAr = operand.split(",");
 //					
