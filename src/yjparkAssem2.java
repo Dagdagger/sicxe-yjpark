@@ -11,7 +11,7 @@ public class yjparkAssem2 {
 	public static void main(String[] args) {
 		
 		// 파일을 읽기 위한 변수 선언
-		File ifp = null, ofp = null;
+		File ifp = null;
 		String infile = "";
 		
 		// 읽어 드린 파일을 Parsing 하기 위한 instance 생성
@@ -41,30 +41,7 @@ public class yjparkAssem2 {
 		// changeImmediateCode(): 1번 함수를 통해 얻어낸 Vector 값을 Immediate 형태로 변환
 		// changeObjectCode(): 1번 함수를 통해 얻어낸 Vector 값 또는 2번에서 얻어낸 결과 값을 이용하여
 		//                     최종 ObjectCode로 변환하여 vector 반환
-//		CLDTO = pp.parseData(ifp);
 		CLDTO = pp.changeObjectCode(pp.changeImmediateCode(pp.parseData(ifp)));
 		
-//		System.out.println(0x00);
-//		System.out.println(0x0);
-		
-		// 반환된 object program 을 출력 파일에 기록
-		// 파일 출력을 실패하면 오류 메세지 출력
-		try {
-			// 출력 파일 열기
-			ofp = new File("output.txt");
-			
-////			// 파일 출력을 위한 instance 생성
-//			VectorPrint vp = new VectorPrint();
-////			
-////			// 파일 출력을 위한 인자 값 전달
-//////			vp.printObjectProg(ofp, CLDTO);
-////			
-////			// 화면 출력용
-//			vp.PrintCLDTO(CLDTO);
-			
-		} catch (Exception e) {
-			System.out.println("파일출력을 실패했습니다.");
-			e.printStackTrace();
-		}
 	}
 }

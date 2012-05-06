@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+
 import sp.interfacepack.*;
 import sp.dtopack.*;
 
@@ -117,6 +118,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 						} else if(tmpLine[i].equals("CSECT") || tmpLine[i].equals("START")) {
 							// control section 의 시작
 							ESTAB et = new ESTAB();
+							et.setCsectIdx(s.getIdx());
 							et.setContolSection(tmpLine[i-1]);
 							ESTAB.add(et);
 						} else if(tmpLine[i].equals("EXTDEF")) {
@@ -165,6 +167,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 				// CodeLineDTO vector 에 추가
 				CLDTO.add(c);
 			}
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -182,7 +185,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 		return CLDTO;
 	}
 
-	// 1번 함수를 통해 얻어낸 Vector 값을 Immediate 형태로 변환
+	// 1번 함수를 통해 얻어낸 Vector 값을 Immediate data 형태로 변환
 	@Override
 	public Vector<CodeLineDTO> changeImmediateCode(Vector<CodeLineDTO> vector) {
 
@@ -299,12 +302,18 @@ public class ParseProcessor implements XEToyAssembler2 {
 					csectIdx = st.getIdx();
 					
 				} else if(opcode.equals("EXTDEF") || opcode.equals("EXTREF")) {
+					// ESTAB 저장
+					
+//					String[] operandAr = operand.split(",");
+//					
+//					for(int esi = 0; esi<operandAr.length; esi++) {
+//					
+//					}
 					
 				} else if(opcode.equals("BYTE") || opcode.equals("WORD")) {
 					// CodeLineDTO 에 주소값 저장
 					c.setAddress(locctr);
-					
-					
+
 					if(operand.matches(".*\\'.*")) {
 						// case X'F1' 인 경우 해당 문자 값 직접 할당
 
@@ -327,7 +336,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 							locctr += (ot.getOffset(c.getOpcode()) * splitStr[1].length());
 							
 							String splitObjectCodeStr = "";
-							System.out.println(Integer.toHexString(Integer.parseInt(splitStr[1])));
+//							System.out.println(Integer.toHexString(Integer.parseInt(splitStr[1])));
 							for(int si = 0; si<splitStr[1].length(); si++) {
 								splitObjectCodeStr += Integer.toHexString(Integer.parseInt(splitStr[1].substring(si,si+1), 16));
 							}
@@ -516,7 +525,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 			opcode = ot.getMNEMONIC(c.getOpcode());
 			
 			// 주석인 경우 다음 라인으로 넘어간다
-			if(c.getLineString() != null && c.getLineString().equals("."))
+			if(c.getLineString().matches("^\\..+"))
 				continue;
 
 			// 명령어 형식 설정
@@ -651,6 +660,21 @@ public class ParseProcessor implements XEToyAssembler2 {
 				
 			}
 		}
+
+		// ESTAB 과 SYMTAB 을 mapping
+		for(int ei=0; ei<ESTAB.size(); ei++) {
+			ESTAB es = ESTAB.get(ei);
+			
+			for(int si=0; si< STAB.size(); si++) {
+				SYMTAB st = STAB.get(si);
+
+				if(STAB.get(si).getSYMBOL().equals(es.getSymbol())) {
+					es.setSymbolIdx(st.getIdx());
+					es.setAddress(st.getVALUE());
+					break;
+				}
+			}
+		}
 		
 //		pv.PrintCLDTO(CLDTO);
 		pv.PrintImmediate(CLDTO, STAB, LITTAB, OCODE);
@@ -664,16 +688,260 @@ public class ParseProcessor implements XEToyAssembler2 {
 
 	}
 
-	// 1번 함수를 통해 얻어낸 Vector 값 또는 2번에서 얻어낸 결과 값을 이용하여 최종 ObjectCode로 변환
+	// 1번 함수를 통해 얻어낸 Vector 값 또는 2번에서 얻어낸 결과 값을 이용하여 최종 Object Program 으로 변환
 	@Override
 	public Vector<CodeLineDTO> changeObjectCode(Vector<CodeLineDTO> vector) {
 		Vector<CodeLineDTO> CLDTO = vector;
-//		CodeLineDTO c = new CodeLineDTO();
 
+		OPTAB ot = new OPTAB();
+	
+		// control section 설정
+		int csectIdx = 0;
+		String prevAddress = "";
+		String prevObjectCode = "";
+		
+		// objectCode 설정
+		String objectCode = "";
+
+		Vector<ObjectProgram> OPV = new Vector<ObjectProgram>();
+		OPV.clear();
+		
+		ObjectProgram op = new ObjectProgram();
+		op.init();
+		
+		///////////////////////////
+		
 		for(int i=0; i<vector.size(); i++) {
 			CodeLineDTO c = vector.get(i);
+			
+			// 주석은 건너뛰기
+			if(c.getLineString().matches("^\\..+"))
+				continue;
+			
+			// address 설정
+			String address = Integer.toHexString(c.getAddress()).toUpperCase();
+			
+			// label 설정
+			String label = "";
+			if(c.getLabel() != 0x2A)
+				label = STAB.get(c.getLabel()).getSYMBOL();
+			
+			// opcode 설정
+			String opcode = ot.getMNEMONIC(c.getOpcode());
+			
+			// operand 설정
+			String operand = c.getOperand2();
+			
+			// "+": opcode
+			// "#": operand
+			// "@": operand
+			// "=": operand | label=="*" -> opcode
+			if(c.getOperand1() != null && c.getOperand1().equals("+")) {
+				opcode = c.getOperand1() + opcode;
+			} else if(c.getOperand1() != null && c.getOperand1().equals("#") || c.getOperand1() != null && c.getOperand1().equals("@")) {
+				operand = c.getOperand1() + operand;
+			} else if(c.getOperand1() != null && c.getOperand1().equals("=")) {
+				if(label.equals("*")) {
+					opcode = c.getOperand1() + opcode;
+				} else {
+					operand = c.getOperand1() + operand;
+				}
+			}
+			
+			// control section 설정
+			if(opcode.equals("START") || opcode.equals("CSECT")) {
+				csectIdx = c.getLabel();
+			}
+
+			// objectCode 설정
+			objectCode = "";
+			for(int oi = 0; oi<OCODE.size(); oi++) {
+				ObjectCode oc = OCODE.get(oi);
+				
+				// CSECT 와 Address 가 동일한 경우에 objectCode 설정
+				if(oc.getCsectIdx() == csectIdx && oc.getAddress() == c.getAddress()) {
+					objectCode = oc.getObjectCode();
+					break;
+				}
+			}
+
+			//////////////////////////////////////////			
+			// for Header
+			String pgName = "";
+			String startAddress = "";
+			String pgLength = "";
+			
+			// for EXTDEF
+			String[] extDefAr;
+			String extDef = "";
+			
+			// for EXTREF
+			String[] extRefAr;
+			String extRef = "";
+			
+						
+			// "START" Header 설정
+			if(opcode.equals("START")) {
+				pgName = label;
+				startAddress = objectCode;
+				
+				op.setPgName(pgName);
+				op.setStartAddress(startAddress);
+				
+				// pgLength 구하기
+				// SYMTAB 에서 relative type 중 가장 큰 value(address)를 찾는다
+				int maxValue = 0;
+				for(int si = 0; si<STAB.size(); si++) {
+					SYMTAB ss = STAB.get(si);
+					if(ss.getVALUE() > maxValue)
+						maxValue = ss.getVALUE();
+				}
+				
+				op.setPgLength(Integer.toHexString(maxValue));
+				
+				op.setEndStr(startAddress);
+				
+			} else if(opcode.equals("CSECT")) {
+				
+				// 각 control section 의 길이 입력
+				if(op.getPgLength().isEmpty()) {
+					op.setPgLength(Integer.toHexString(Integer.parseInt(prevAddress, 16)+prevObjectCode.length()/2).toUpperCase());
+				}
+				// Text record 를 종료하는 경우
+				// CSECT 를 만나면
+				op.setNewTextStr();
+				
+				// "CSECT" 나오면 기존꺼 추가하고 다시 시작
+				OPV.add(op);
+				
+				
+				op = new ObjectProgram();
+				op.init();
+				
+				pgName = label;
+				startAddress = "0";
+				
+				op.setPgName(pgName);
+				op.setStartAddress(startAddress);
+				
+			} else if(opcode.equals("EXTDEF")) {
+				// "EXTDEF" 설정
+				extDefAr = operand.split(",");
+				
+				// ESTAB 에서 해당 symbol 별 주소 가져오기
+				for(int di = 0; di<extDefAr.length; di++) {
+					for(int ei=0; ei<ESTAB.size(); ei++) {
+						ESTAB es = ESTAB.get(ei);
+						
+						if(extDefAr[di].equals(es.getSymbol())) {
+							op.setExtDef(extDefAr[di]);
+							op.setExtDefAddr(Integer.toHexString(es.getAddress()).toUpperCase());
+							break;
+						}
+					}
+				}
+				
+			} else if(opcode.equals("EXTREF")) {
+				// "EXTREF" 설정
+				extRefAr = operand.split(",");
+				
+				for(int ri = 0; ri<extRefAr.length; ri++) {
+					op.setExtRef(extRefAr[ri]);
+				}
+				
+			} else if(opcode.equals("LTORG") || opcode.equals("RESW") || opcode.equals("RESB")) {
+				// Text record 를 추가하는 경우
+				// LTORG, RESW, RESB 를 만나면
+				op.setNewTextStr();
+
+			} else {
+				// 나머지 Instruction  의 경우 Text, Modification Record 로 설정
+				
+				// objectCode 가 있는 경우만
+				if(!objectCode.equals("")) {
+
+					// Text record 를 추가하는 경우
+					// 1 라인의 최대 길이: 29(10) = 1D(16)
+					
+					// Text record 가 끝나는 경우
+					// CSECT 를 만나면
+					if(op.getTextStartAddr().isEmpty())
+						op.setTextStartAddr(address);
+					
+					// text 추가
+					op.setTextStr(objectCode, address);
+					
+
+					//////////////////////////////////////////////////////
+					// Modification record 를 추가하는 경우
+					// 수정해야 되는 주소 자릿 수
+					// '0' 의 갯수 만큼
+					int zeroCnt = objectCode.length() - objectCode.indexOf('0', 0);
+					
+					// 수정 시작 주소
+					String modAddress = Integer.toHexString((c.getAddress() + (objectCode.length() - zeroCnt) / 2)).toUpperCase();
+					
+					// 수정 대상 operand
+					String modOperand = c.getOperand2();
+	
+					// "+" 4형식인 경우
+					// WORD, BYTE -> "+/-" : Absolute 연산인 경우
+					if(c.getOperand1() != null && c.getOperand1().equals("+")) {
+						
+
+						// BUFFER,X 같은 경우
+						if(modOperand.matches(".*\\,.*"))
+							modOperand = modOperand.split(",")[0];
+	
+						// address+"address 에서 '0'의 갯수만큼"+"+/-operand2
+						op.setModStr(modAddress, zeroCnt, objectCode, "+"+modOperand);
+					
+					} else if(opcode.equals("WORD") || opcode.equals("BYTE")) {
+						// "+" 처리는 추후 보완사항
+						if(modOperand.matches(".*-.*")) {
+							String[] modOperandAr = modOperand.split("-");
+							
+							// address+"address 에서 '0'의 갯수만큼"+"+/-operand2
+							op.setModStr(address, zeroCnt, objectCode, "+"+modOperandAr[0]);
+							
+							// 연산기호 변경
+							for(int mi = 1; mi < modOperandAr.length; mi++) {
+								op.setModStr(address, zeroCnt, objectCode, "-"+modOperandAr[mi]);
+							}
+						}	
+					}
+					// END OF MODIFICATION RECORD
+					///////////////////////////////////
+				}
+
+				// 프로그램의 끝
+				if((i == vector.size()-1)) {
+					
+					// 각 control section 의 길이 입력
+					op.setPgLength(Integer.toHexString(Integer.parseInt(address, 16)+objectCode.length()/2).toUpperCase());
+					
+					// Text record 를 추가하는 경우
+					// 프로그램 끝을 만나면
+					op.setNewTextStr();
+					
+					// 종료
+					OPV.add(op);
+					
+				}
+			}
+			
+			// prev 변수 저장
+			// 프로그램 길이를 알기 위함
+			prevAddress = address;
+			prevObjectCode = objectCode;
 
 		}
+
+		// 화면 출력
+		pv.PrintObjectProgram(OPV);
+		
+		// 파일 출력
+		
 		// 해당 vertor를 반환한다.
 		return CLDTO;
 
