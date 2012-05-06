@@ -6,125 +6,9 @@ import sp.dtopack.*;
 public class VectorPrint extends CodeLineDTO {
 	
 	// 기본 생성자
-	public VectorPrint() {}
-
-//	public void PrintIFILE(Vector<String> vector) {
-//		
-//		for(int i=0; i<vector.size(); i++) {
-//			String pf = vector.get(i);
-//			
-//			System.out.println(i+": "+pf);
-//		}		
-//	}
+	public VectorPrint() {}	
 	
-	public void PrintCLDTO(Vector<CodeLineDTO> vector) {
-		
-		System.out.println("line:"
-				+" Address"
-				+"\tLabel"
-				+"\tOpcode"
-				+"\tOperand1"
-				+"\tOperand2"
-				+"\tComments"
-		);
-		
-		for(int i=0; i<vector.size(); i++) {
-			CodeLineDTO v = vector.get(i);
-			
-			System.out.println(i+":"
-								+" "+Integer.toHexString(v.getAddress()).toUpperCase()
-								+"\t"+v.getLabel()
-								+"\t"+v.getOpcode()
-								+"\t"+v.getOperand1()
-								+"\t"+v.getOperand2()
-								+"\t"+v.getLineString()
-			);
-		}		
-	}
-	
-	public void PrintSTAB(Vector<SYMTAB> vector) {
-	
-		System.out.println("line:"
-				+" idx"
-				+"\tSYMBOL"
-				+"\tTYPE"
-				+"\tVALUE"
-		);
-		
-		for(int i=0; i<vector.size(); i++) {
-			SYMTAB v = vector.get(i);
-			
-			System.out.println(i+":"
-								+" "+v.getIdx()
-								+"\t"+v.getSYMBOL()
-								+"\t"+v.getTYPE()
-								+"\t"+Integer.toHexString(v.getVALUE()).toUpperCase()
-			);
-		}		
-	}	
-
-	public void PrintESTAB(Vector<ESTAB> vector) {
-	
-		System.out.println("line:"
-				+" CSECT"
-				+"\tSymbol"
-				+"\tAddress"
-				+"\tLength"
-		);
-		
-		for(int i=0; i<vector.size(); i++) {
-			ESTAB v = vector.get(i);
-
-			System.out.println(i+":"
-								+" "+v.getContolSection()
-								+"\t"+v.getSymbol()
-								+"\t"+Integer.toHexString(v.getAddress())
-								+"\t"+v.getLength()
-			);
-		}		
-	}	
-	
-	public void PrintLITTAB(Vector<LITTAB> vector) {
-		
-		System.out.println("line:"
-				+" idx"
-				+"\tAddress"
-				+"\tOpValue"
-				+"\tLength"
-				+"\tLitName"
-		);
-		
-		for(int i=0; i<vector.size(); i++) {
-			LITTAB v = vector.get(i);
-			
-			System.out.println(i+":"
-								+" "+v.getIdx()
-								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
-								+"\t"+v.getOperandValue()
-								+"\t"+v.getLength()
-								+"\t"+v.getLiteralName()
-			);
-		}		
-	}	
-
-	public void PrintObjectCode(Vector<ObjectCode> vector) {
-		
-		System.out.println("line:"
-				+" address"
-				+"\tobjectCode"
-		);
-		
-		for(int i=0; i<vector.size(); i++) {
-			ObjectCode v = vector.get(i);
-			
-			System.out.println(i+":"
-								+" "+v.getCsectIdx()
-								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
-								+"\t"+v.getObjectCode()
-			);
-		}		
-	}	
-	
+	// immediate data 화면 출력용
 	public void PrintImmediate(Vector<CodeLineDTO> CLDTO, Vector<SYMTAB> STAB, Vector<LITTAB> LITTAB, Vector<ObjectCode> OCODE) {
 		
 		// control section
@@ -243,16 +127,32 @@ public class VectorPrint extends CodeLineDTO {
 	}
 	
 	// Object Program 파일에 출력
-	public void printObjectProg(File fp, Vector<CodeLineDTO> vector) {
+	public void printObjectProg(Vector<ObjectProgram> vector) {
 		// TODO Auto-generated method stub
 		
 		try {
 			// 전달받은 Object Program 을 output.txt 파일에 작성한다.
+			// 출력 파일 열기
+			File fp = new File("output.txt");
 			BufferedWriter writer = new BufferedWriter(new FileWriter(fp));
 			
+			for(int i=0; i<vector.size(); i++) {
+				ObjectProgram v = vector.get(i);
+				
+				System.out.println(i+":"
+									+" "+v.getPgName()
+									+"\t"+v.getStartAddress()
+									+"\t"+v.getPgLength()
+									+"\t"+v.getExtDef()
+									+"\t"+v.getExtRef()
+									+"\t"+v.getTextStr()
+									+"\t"+v.getModStr()
+									+"\t"+v.getEndStr()
+				);
+			}	
 			
 			for(int i=0; i<vector.size(); i++) {
-//				CodeLineDTO v = vector.get(i);
+
 				
 				writer.write(vector.get(i).toString());
 				writer.newLine();
@@ -266,5 +166,145 @@ public class VectorPrint extends CodeLineDTO {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void PrintCLDTO(Vector<CodeLineDTO> vector) {
+		
+		System.out.println("line:"
+				+" Address"
+				+"\tLabel"
+				+"\tOpcode"
+				+"\tOperand1"
+				+"\tOperand2"
+				+"\tComments"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			CodeLineDTO v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+Integer.toHexString(v.getAddress()).toUpperCase()
+								+"\t"+v.getLabel()
+								+"\t"+v.getOpcode()
+								+"\t"+v.getOperand1()
+								+"\t"+v.getOperand2()
+								+"\t"+v.getLineString()
+			);
+		}		
+	}
+	
+	public void PrintSTAB(Vector<SYMTAB> vector) {
+	
+		System.out.println("line:"
+				+" idx"
+				+"\tSYMBOL"
+				+"\tTYPE"
+				+"\tVALUE"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			SYMTAB v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+v.getIdx()
+								+"\t"+v.getSYMBOL()
+								+"\t"+v.getTYPE()
+								+"\t"+Integer.toHexString(v.getVALUE()).toUpperCase()
+			);
+		}		
+	}	
+
+	public void PrintESTAB(Vector<ESTAB> vector) {
+	
+		System.out.println("line:"
+				+" CSECT"
+				+"\tSymbol"
+				+"\tAddress"
+				+"\tLength"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			ESTAB v = vector.get(i);
+
+			System.out.println(i+":"
+								+" "+v.getCsectIdx()
+								+"\t"+v.getContolSection()
+								+"\t"+v.getSymbolIdx()
+								+"\t"+v.getSymbol()
+								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
+								+"\t"+v.getLength()
+			);
+		}		
+	}	
+	
+	public void PrintLITTAB(Vector<LITTAB> vector) {
+		
+		System.out.println("line:"
+				+" idx"
+				+"\tAddress"
+				+"\tOpValue"
+				+"\tLength"
+				+"\tLitName"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			LITTAB v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+v.getIdx()
+								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
+								+"\t"+v.getOperandValue()
+								+"\t"+v.getLength()
+								+"\t"+v.getLiteralName()
+			);
+		}		
+	}	
+
+	public void PrintObjectCode(Vector<ObjectCode> vector) {
+		
+		System.out.println("line:"
+				+" address"
+				+"\tobjectCode"
+		);
+		
+		for(int i=0; i<vector.size(); i++) {
+			ObjectCode v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+v.getCsectIdx()
+								+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
+								+"\t"+v.getObjectCode()
+			);
+		}		
+	}
+	
+	
+	public void PrintObjectProgram(Vector<ObjectProgram> vector) {
+		
+		System.out.println("line:"
+				+" pgName"
+				+"\tstartAddress"
+				+"\tpgLength"
+				+"\textDef"
+				+"\textRef"
+				+"\ttextStr"
+				+"\tmodStr"
+				+"\tendStr"
+		);
+
+		for(int i=0; i<vector.size(); i++) {
+			ObjectProgram v = vector.get(i);
+			
+			System.out.println(i+":"
+								+" "+v.getPgName()
+								+"\t"+v.getStartAddress()
+								+"\t"+v.getPgLength()
+								+"\t"+v.getExtDef()
+								+"\t"+v.getExtRef()
+								+"\t"+v.getTextStr()
+								+"\t"+v.getModStr()
+								+"\t"+v.getEndStr()
+			);
+		}		
 	}
 }

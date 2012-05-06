@@ -2,7 +2,9 @@
 
 public class ESTAB {
 
+	private int csectIdx;
 	private String contolSection;
+	private int symbolIdx;
 	private String symbol;
 	private int address;
 	private int length;
@@ -10,6 +12,14 @@ public class ESTAB {
 	public ESTAB() {
 	}
 
+	public int getCsectIdx() {
+		return csectIdx;
+	}
+
+	public void setCsectIdx(int csectIdx) {
+		this.csectIdx = csectIdx;
+	}
+	
 	public String getContolSection() {
 		return contolSection;
 	}
@@ -18,6 +28,14 @@ public class ESTAB {
 		this.contolSection = contolSection;
 	}
 
+	public int getSymbolIdx() {
+		return symbolIdx;
+	}
+
+	public void setSymbolIdx(int symbolIdx) {
+		this.symbolIdx = symbolIdx;
+	}
+	
 	public String getSymbol() {
 		return symbol;
 	}
