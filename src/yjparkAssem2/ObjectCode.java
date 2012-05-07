@@ -56,7 +56,7 @@ public class ObjectCode {
 			// bit OR
 			packVar |= (char)Integer.parseInt(opHex.substring(i, i+1), 16);
 		}
-//		System.out.println("=="+Integer.toBinaryString(packVar));
+
 		return packVar;
 	}
 	
