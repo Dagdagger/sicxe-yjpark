@@ -301,6 +301,9 @@ for line in rlines:
 CodeLine, gap, locctr = addLiteral(CodeLine, locctr)
 # === PASS1 END ================================================ #
 
+# === PASS2 START ================================================ #
+
+# === PASS2 END ================================================ #
 
 i = 0
 while(i < CodeLine.__len__()):
