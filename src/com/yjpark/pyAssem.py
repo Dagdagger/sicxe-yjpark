@@ -235,7 +235,7 @@ for line in rlines:
             
             # add to location counter into CodeLine
             # [label] [mnemonic] [opcode] [locctr] [operand] [comment] [objectCode]
-            CodeLine[cIdx].insert(CodeLine[cIdx].__len__(), {"mnemonic":mnemonic})
+            CodeLine[cIdx].insert(CodeLine[cIdx].__len__(), {"mnemonic":inputLine[i][j]})
             
             # except directive
             if opcodeList[1] != 0:
@@ -303,10 +303,116 @@ CodeLine, gap, locctr = addLiteral(CodeLine, locctr)
 
 # === PASS2 START ================================================ #
 
+locctr = ""
+label = ""
+mnemonic = ""
+operand = ""
+opcode = ""
+commentLine = ""
+
+address = ""
+objectCode = ""
+    
+i = 0
+while i < CodeLine.__len__():
+    
+    nflag = 0
+    iflag = 0
+    xflag = 0
+    bflag = 0
+    pflag = 0
+    eflag = 0
+    
+    j = 0
+    
+    # [label] [mnemonic] [mnemonic] [locctr] [operand] [comment] [opcode-objectCode]
+    while j < CodeLine[i].__len__():
+        
+        # [locctr] [label] [opcode] [operand] [objectCode]      
+        if CodeLine[i][j].get("locctr") != None:
+            locctr = CodeLine[i][j].get("locctr")
+        if CodeLine[i][j].get("label") != None:
+            label = CodeLine[i][j].get("label")
+        if CodeLine[i][j].get("mnemonic") != None:
+            mnemonic = CodeLine[i][j].get("mnemonic")        
+        if CodeLine[i][j].get("operand") != None:
+            operand = CodeLine[i][j].get("operand")      
+        if CodeLine[i][j].get("opcode") != None:
+            opcode = CodeLine[i][j].get("opcode")
+        if CodeLine[i][j].get("commentLine") != None:
+            commentLine = CodeLine[i][j].get("commentLine")
+            
+        j += 1
+        
+    # mnemonic -> opcode
+    opcodeList = getOpcode(mnemonic)
+    if opcodeList != None:
+        offset = opcodeList[3]
+    
+    # simple
+    nflag = 1
+    iflag = 1
+    
+    if operand != "":
+        # indirect - @
+        if operand[0] == "@":
+            nflag = 1
+            iflag = 0
+            
+        # immediate - #
+        elif operand[0] == "#":
+            nflag = 0
+            iflag = 1
+
+    # LOOP x
+    op_ar = operand.split(",")
+    if op_ar.__len__() > 1:
+        if op_ar[1] == "X":
+            xflag = 1
+
+    #  base relative
+    bflag = 0
+    
+    # PC relative
+    plfag = 1
+    
+    # extended
+    if mnemonic[0] == "+":
+        offset += 1
+        bflag = 0
+        pflag = 0
+        eflag = 1
+        
+        
+    pcctr = locctr + offset
+    
+    try:
+#        oIdx = 0
+#        while oIdx < opcode.__len__():
+        opcode_hex = "%x".upper() % opcode
+        print opcode_hex[0]
+        objectCode = int(opcode_hex[0]) << 4
+        
+        objectCode = int(opcode_hex[1]) >> 4
+
+#            oIdx += 1
+#        objectCode = opcode<<((offset-1)*8+1)
+#        objectCode = objectCode | nflag<<((offset*2-1)*4+1)
+#        objectCode = objectCode | iflag<<((offset*2-1)*4+2)
+#        objectCode = opcode << 16
+        print mnemonic
+        print "%x".upper() % objectCode
+    except:
+        objectCode = ""
+    
+
+    
+    i += 1
+    
 # === PASS2 END ================================================ #
 
 i = 0
-while(i < CodeLine.__len__()):
+while i < CodeLine.__len__():
     
     locctr = ""
     label = ""
