@@ -311,7 +311,7 @@ opcode = ""
 commentLine = ""
 
 address = ""
-objectCode = ""
+objectCode = 0x0
     
 i = 0
 while i < CodeLine.__len__():
@@ -386,24 +386,52 @@ while i < CodeLine.__len__():
         
     pcctr = locctr + offset
     
-    try:
-#        oIdx = 0
-#        while oIdx < opcode.__len__():
+    
+#    print type(opcode)
+#    print opcode
+    if type(opcode) == type(1):
         opcode_hex = "%x".upper() % opcode
-        print opcode_hex[0]
-        objectCode = int(opcode_hex[0]) << 4
+#        print opcode_hex
+#        print hex(int(opcode_hex, 16) << (offset*(2-1)*8))
+        objectCode = 0x0
         
-        objectCode = int(opcode_hex[1]) >> 4
-
+        # packing
+        oIdx = 0
+        while oIdx < len(opcode_hex):
+            objectCode << 4
+            objectCode |= int(opcode_hex[oIdx], 16)
+            oIdx += 1
+            print hex(objectCode)
+            
+        objectCode |= nflag << 1
+        objectCode |= iflag
+        objectCode << 4
+        
+        objectCode |= xflag << 3
+        objectCode |= bflag << 2
+        objectCode |= pflag << 1
+        objectCode |= eflag
+        objectCode << 4
+        
+        print objectCode
+#        oIdx = 0
+#        while oIdx < len(opcode_hex):
+#            objectCode |= int(opcode_hex[oIdx], 16) << ((offset*2-oIdx+1)*8)
+#            print hex(objectCode)
 #            oIdx += 1
-#        objectCode = opcode<<((offset-1)*8+1)
-#        objectCode = objectCode | nflag<<((offset*2-1)*4+1)
-#        objectCode = objectCode | iflag<<((offset*2-1)*4+2)
-#        objectCode = opcode << 16
-        print mnemonic
-        print "%x".upper() % objectCode
-    except:
-        objectCode = ""
+#        
+
+        
+#        opcode_hex = long(opcode_hex, 16)
+#        print type(opcode_hex)
+#        print opcode_hex
+##        print type(opcode_hex)
+##        print type()
+##        opcode_hex = opcode_hex << (offset*(2-1)*8)
+##        print opcode_hex
+#        
+#    else:
+#        print "="+opcode
     
 
     
