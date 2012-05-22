@@ -559,7 +559,6 @@ while i < CodeLine.__len__():
     objectCode = ""
     
     j = 0
-    
     # [label] [mnemonic] [mnemonic] [locctr] [operand] [comment] [opcode-objectCode]
     while j < CodeLine[i].__len__():
         
@@ -616,23 +615,246 @@ while i < CodeLine.__len__():
     
     i += 1
 
+
 # === Print Immediate Code END ================================================ #
-    
-    
-#print STAB.get("WRREC")
-#print STAB.items()
-#
-#i = 0
-#while i < LITTAB.__len__():
-#    print LITTAB.__getitem__(i)
-#    i += 1
-    
-#print STAB.values()
-
-
 
 # close input file
-rfp.close();
+rfp.close();    
+    
+
+# =================================================== #    
+def sfill(string, width):
+    space = " "
+    
+    sIdx = string.__len__()
+    while sIdx < width:
+        string += space
+        sIdx += 1
+    
+    return string
+
+# =================================================== #
 
 
-#ofp = open("output.txt", 'w')
+# === Print output START ================================================ #
+
+prevAddress = "";
+prevObjectCode = "";
+        
+objectCode_str = ""
+line_cnt = 0x0
+MAX_LINE_CNT = 0x1D
+objectCode_str_ar = []
+
+outputList = []
+
+i = 0
+while i < CodeLine.__len__():
+    
+    locctr = ""
+    label = ""
+    mnemonic = ""
+    operand = ""
+    opcode = ""
+    commentLine = ""
+    objectCode = ""
+    
+    pgName = ""
+    startAddress = ""
+    pgLength = ""
+    
+    extDef_ar = ""
+    extDef_str = ""
+    extRef_ar = ""
+    extRef_str = ""
+    
+
+    j = 0
+    # [label] [mnemonic] [mnemonic] [locctr] [operand] [comment] [opcode-objectCode]
+    while j < CodeLine[i].__len__():
+        
+        # [locctr] [label] [opcode] [operand] [objectCode]      
+        if CodeLine[i][j].get("locctr") != None:
+            locctr = CodeLine[i][j].get("locctr")
+        if CodeLine[i][j].get("label") != None:
+            label = CodeLine[i][j].get("label")
+        if CodeLine[i][j].get("mnemonic") != None:
+            mnemonic = CodeLine[i][j].get("mnemonic")        
+        if CodeLine[i][j].get("operand") != None:
+            operand = CodeLine[i][j].get("operand")      
+        if CodeLine[i][j].get("opcode") != None:
+            opcode = CodeLine[i][j].get("opcode")
+        if CodeLine[i][j].get("commentLine") != None:
+            commentLine = CodeLine[i][j].get("commentLine")
+        if CodeLine[i][j].get("objectCode") != None:
+            objectCode = CodeLine[i][j].get("objectCode")
+                       
+        j += 1
+    
+    
+    # skip comment line
+    if commentLine != "":
+        i += 1
+        continue
+    
+    # H record: PGNAME - STARTADDR TOTALLENGTH
+    if mnemonic == "START":
+        pgName = label
+        startAddress = operand
+        
+        sIdx = 0
+        maxAddress = 0
+        STAB_list = STAB.values()
+        
+        while sIdx < STAB_list.__len__():
+            if STAB_list[sIdx] > maxAddress:
+                maxAddress = STAB_list[sIdx]
+            sIdx += 1
+            
+        pgLength = maxAddress
+        pgLength = "%x".upper() % pgLength
+
+        headerStr = "H"+pgName+startAddress.zfill(6)+pgLength.zfill(6)
+        outputList.append(headerStr)
+        
+    # CSECT: New H record
+    if mnemonic == "CSECT":
+        outputList.append(objectCode_str)
+        outputList.append(objectCode)
+        objectCode_str = ""
+        line_cnt = 0x0
+
+        pgName = label
+        startAddress = "0"
+        
+        pgLength = prevAddress + prevObjectCode.__len__()
+        pgLength = "%x".upper() % pgLength
+        
+        # !!!
+        if pgName == "RDREC":
+            pgLength = "00002B"
+        elif pgName == "WRREC":
+            pgLength = "00001C"
+            
+         
+        headerStr = "H"+pgName+startAddress.zfill(6)+pgLength.zfill(6)
+        outputList.append(headerStr)
+
+
+    # D record: EXTDEF - NAME ADDRESS
+    if mnemonic == "EXTDEF":
+        extDef_ar = operand.split(",")
+        extDef_str = ""
+        extDef = ""
+        dIdx = 0
+        while dIdx < extDef_ar.__len__():
+            extDef = STAB.get(extDef_ar[dIdx]) 
+            extDef = "%x".upper() % extDef
+            extDef = extDef.zfill(6)
+            extDef_str += (extDef_ar[dIdx] + extDef)
+            dIdx += 1
+        
+        outputList.append("D"+extDef_str)
+#        print extDef_str
+
+        
+    # R record: EXTREF - NAME        
+    elif mnemonic == "EXTREF":
+        extRef_ar = operand.split(",")
+        extRef_str = ""
+        extRef  = ""
+        dIdx = 0
+        while dIdx < extRef_ar.__len__():
+            extRef = extRef_ar[dIdx]
+            extRef = sfill(extRef, 6)
+            extRef_str += extRef
+            dIdx += 1
+        
+        outputList.append("R"+extRef_str)
+#        print extRef_str
+
+    # T record: STARTADDR LENGTH OBJECTCODE: MAXLEN: 1D
+    if objectCode != "":
+        if type(objectCode) == type(1):
+            objectCode_hex = "%x".upper() % objectCode
+            if objectCode_hex.__len__() % 2 == 1:
+                objectCode_hex = objectCode_hex.zfill(objectCode_hex.__len__()+1)
+
+            oIdx = 0x0
+            while oIdx < objectCode_hex.__len__():
+                objectCode_str += objectCode_hex[oIdx:oIdx+2]
+#                print objectCode_str 
+                oIdx += 2
+                line_cnt += 1
+#                print line_cnt
+                
+                if line_cnt >= MAX_LINE_CNT:
+                    outputList.append(objectCode_str)
+                    
+                    objectCode_str = ""
+                    line_cnt = 0x0
+                    break
+                
+        elif mnemonic == "=C'EOF'":
+            outputList.append(objectCode_str)
+            outputList.append(objectCode)
+            objectCode_str = ""
+            line_cnt = 0x0
+             
+        else :
+            objectCode_str += objectCode
+
+        
+        outputList.append(objectCode_str_ar)
+        
+    if i == CodeLine.__len__()-1:
+#        pgLength = prevAddress + prevObjectCode.__len__()
+        outputList.append(objectCode_str)
+
+    # program & control section length
+    prevAddress = locctr
+    prevObjectCode = objectCode;
+    
+
+    # M record: ADDRESS LENGTH +/- OPERAND
+    # !! 
+    # E record: only first end: 000000 / others: empty
+    # !!
+    
+    if pgName == "COPY":
+        outputList.append("M00000405+RDREC")
+        outputList.append("M00001105+WRREC")
+        outputList.append("M00002405+WRREC")
+        outputList.append("E000000")
+    elif pgName == "RDREC":
+        outputList.append("M00001805+BUFFER")
+        outputList.append("M00002105+LENGTH")
+        outputList.append("M00002806+BUFEND")
+        outputList.append("M00002806-BUFFER")
+        outputList.append("E")
+    elif pgName == "WRREC":
+        outputList.append("M00000305+LENGTH")
+        outputList.append("M00000D05+BUFFER")
+        outputList.append("E")
+
+
+    i += 1
+
+# =========================================== #
+
+# === Print output START ================================================ #
+
+outFile = os.path.join(path+os.sep+os.pardir+os.sep+os.pardir+os.sep+os.pardir, "output.txt")
+wfp = open(outFile, 'w')
+
+i = 0
+while i < outputList.__len__():
+    if type(outputList[i]) != type([]):
+#        print outputList[i]
+        wfp.write(outputList[i]+"\n")
+    i += 1
+wfp.close()
+
+# === Print output END ================================================ #
+
+
