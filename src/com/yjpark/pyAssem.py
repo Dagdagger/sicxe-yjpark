@@ -246,6 +246,7 @@ for line in rlines:
             if mnemonic[0] == "+":
                 # 1 ~ end
                 mnemonic = inputLine[i][j][1:inputLine[i][j].__len__()]
+
                 # extended
                 pcctr += 1
                 
@@ -380,6 +381,7 @@ while i < CodeLine.__len__():
             
         j += 1
         
+    print mnemonic
     # mnemonic -> opcode
     opcodeList = getOpcode(mnemonic)
     if opcodeList != None:
@@ -388,7 +390,7 @@ while i < CodeLine.__len__():
             continue
         
         offset = opcodeList[3]
-    
+   
     # simple
     nflag = 1
     iflag = 1
@@ -408,14 +410,23 @@ while i < CodeLine.__len__():
         eflag = 1
         disp = 0x00000
         
-    else :
         # LOOP x
         op_ar = operand.split(",")
+
         if op_ar.__len__() > 1:
             if op_ar[1] == "X":
                 operand = op_ar[0]
                 xflag = 1
+                
+    else :
+        # LOOP x
+        op_ar = operand.split(",")
 
+        if op_ar.__len__() > 1:
+            if op_ar[1] == "X":
+                operand = op_ar[0]
+                xflag = 1
+        
         pcctr = locctr + offset
 
         if operand != "":
@@ -443,11 +454,8 @@ while i < CodeLine.__len__():
                         disp = LITTAB.__getitem__(lIdx).get("locctr")
                         break
                     lIdx += 1
-                
-#                print "LITTAB: %s" % hex(disp)
+
                 disp -= pcctr
-#                disp = disp & 0xFFF # casting unsigned
-#                print "disp: %s" % hex(disp)
                                 
             else :
                 if STAB.get(operand) == None:
@@ -457,28 +465,59 @@ while i < CodeLine.__len__():
                     
                 disp -= pcctr
                 disp = disp & 0xFFF # casting unsigned
-                        
-#                print "disp: %s" % hex(disp)
-
-
-#    print "label: %(label)s type_opcode: %(type)s" % {"label":label, "type":type(opcode)}
+         
+#        else :
+#             print mnemonic               
 
     # literal - =
     if mnemonic[0] == "=":
         CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":opcode})
-    else :
         
-#        if
-        
-        # register
-        registerList = getRegister(operand)
-        if registerList != None:
-            nflag = 0
-            iflag = 0
-            bflag = 0
-            pflag = 0
-            disp = (registerList[1]<<4)
-                    
+    else :       
+        print mnemonic
+        # LOOP x
+        op_ar = operand.split(",")
+
+        if op_ar.__len__() > 1:
+            if op_ar[1] == "X":
+                operand = op_ar[0]
+                xflag = 1
+            else :
+                # register
+                rIdx = 0
+                while rIdx < op_ar.__len__():
+                    registerList = getRegister(op_ar[rIdx])
+
+                    if registerList != None:
+                        disp<<=4
+                        
+                        nflag = 0
+                        iflag = 0
+                        bflag = 0
+                        pflag = 0
+                        disp = registerList[1]
+                        
+                    rIdx += 1
+        elif mnemonic == "BYTE":
+            op_ar_1 = operand.split("'")
+#            print op_ar_1
+            
+            if op_ar_1[0] == "C":
+                disp = op_ar_1[1]
+            elif op_ar_1[0] == "X":
+                disp = op_ar_1[1]
+            
+        else :                
+            # register
+            registerList = getRegister(operand)
+            if registerList != None:
+                nflag = 0
+                iflag = 0
+                bflag = 0
+                pflag = 0
+                disp = (registerList[1]<<4)
+         
+        # ======================================================== #           
         # only valid opcode - integer
         if type(opcode) == type(1):
             opcode_hex = "%x".upper() % opcode
@@ -487,7 +526,7 @@ while i < CodeLine.__len__():
             objectCode |= nflag << 1
             objectCode |= iflag
             objectCode <<= 4
-            
+
             objectCode |= xflag << 3
             objectCode |= bflag << 2
             objectCode |= pflag << 1
@@ -497,7 +536,6 @@ while i < CodeLine.__len__():
             objectCode |= disp
             
             CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":objectCode})
-        
     
     i += 1
     
