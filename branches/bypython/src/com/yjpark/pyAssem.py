@@ -123,10 +123,19 @@ def getOpcode(mnemonic):
             return OPCODE[i]
         i = i + 1
 
+def getRegister(operand):
+    i = 0;
+    while i <  Register.__len__():
+        if operand == Register[i][0]:
+            return Register[i]
+        i = i + 1
+
 # =================================================== #
 def combineList(list1, list2):
     list1.insert(list1.__len__(), list2)
     return list1
+
+
 # =================================================== #
 def getLitVal(operand):
     lit_ar = operand.split("'")
@@ -144,20 +153,30 @@ def getLitVal(operand):
             i += 1
         
     return litval
+
+
 # =================================================== #
 def addLiteral(tList, locctr):
     lIdx = 0
-    items = LITTAB.items()
+    items = LITTAB_TMP.items()
     while lIdx < items.__len__():
         tList.append([{"label":"*"}, {"mnemonic":items[0][0]}, {"opcode":items[0][1]}, {"locctr":locctr}, {"operand":""}, {"comment":""}])
+        
+        # add to LITTAB
+        LITTAB.append({"mnemonic":items[0][0], "opcode":items[0][1], "locctr":locctr})
+        
+        # increase locctr
         locctr += items[0][1].__len__()/2
+        
         lIdx += 1
     
     gap = items.__len__()
     
-    LITTAB.clear()
+    LITTAB_TMP.clear()
     
     return tList, gap, locctr
+
+
 # =================================================== #
                 
 # === PASS1 START ================================================ #
@@ -171,7 +190,9 @@ inputLine = []
 
 # indexing key value
 STAB = {}
-LITTAB = {}
+
+LITTAB = []
+LITTAB_TMP = {}
 
 locctr = 0x0
 pcctr = 0x0
@@ -185,7 +206,7 @@ for line in rlines:
     if inputLine[i][0] == "." :
         if inputLine[i].__len__() == 2:
             CodeLine[cIdx].insert(CodeLine[cIdx].__len__(), {"commentLine":inputLine[i][0]+"\t"+inputLine[i][1]})
-        else: 
+        else : 
             CodeLine[cIdx].insert(CodeLine[cIdx].__len__(), {"commentLine":inputLine[i][0]})
         # move to next index
         i = i + 1
@@ -278,7 +299,7 @@ for line in rlines:
             # "="
             if operand[0] == "=":             
                 # add to LITTAB
-                LITTAB[inputLine[i][j]] = getLitVal(inputLine[i][j])
+                LITTAB_TMP[inputLine[i][j]] = getLitVal(inputLine[i][j])
                 
 #            
         # [COMMENT]
@@ -301,8 +322,23 @@ for line in rlines:
 CodeLine, gap, locctr = addLiteral(CodeLine, locctr)
 # === PASS1 END ================================================ #
 
-# === PASS2 START ================================================ #
+# =================================================== #
+# packing
+def  packing(opcode_hex):
+    objectCode = 0x0
+        
+    # packing
+    oIdx = 0
+    while oIdx < len(opcode_hex):
+        objectCode <<= 4
+        objectCode |= int(opcode_hex[oIdx], 16)
+        oIdx += 1
+     
+    return objectCode
 
+# =================================================== #
+
+# === PASS2 START ================================================ #
 locctr = ""
 label = ""
 mnemonic = ""
@@ -347,34 +383,22 @@ while i < CodeLine.__len__():
     # mnemonic -> opcode
     opcodeList = getOpcode(mnemonic)
     if opcodeList != None:
+        if opcodeList[1] == 0:
+            i += 1
+            continue
+        
         offset = opcodeList[3]
     
     # simple
     nflag = 1
     iflag = 1
-    
-    if operand != "":
-        # indirect - @
-        if operand[0] == "@":
-            nflag = 1
-            iflag = 0
-            
-        # immediate - #
-        elif operand[0] == "#":
-            nflag = 0
-            iflag = 1
-
-    # LOOP x
-    op_ar = operand.split(",")
-    if op_ar.__len__() > 1:
-        if op_ar[1] == "X":
-            xflag = 1
 
     #  base relative
     bflag = 0
     
     # PC relative
-    plfag = 1
+    pflag = 1
+
     
     # extended
     if mnemonic[0] == "+":
@@ -382,63 +406,105 @@ while i < CodeLine.__len__():
         bflag = 0
         pflag = 0
         eflag = 1
+        disp = 0x00000
         
+    else :
+        # LOOP x
+        op_ar = operand.split(",")
+        if op_ar.__len__() > 1:
+            if op_ar[1] == "X":
+                operand = op_ar[0]
+                xflag = 1
+
+        pcctr = locctr + offset
+
+        if operand != "":
+            # indirect - @
+            if operand[0] == "@":
+                nflag = 1
+                iflag = 0
+                
+            # immediate - #
+            elif operand[0] == "#":
+                nflag = 0
+                iflag = 1
+                bflag = 0
+                pflag = 0
+                eflag = 0
+                disp = int(operand[1:])
+                
+            # literal - =
+            elif operand[0] == "=":
+#                disp = int(LITTAB.__getattribute__(0), 16)
+#                print LITTAB.__getattribute__("")
+                lIdx = 0
+                while lIdx < LITTAB.__len__():
+                    if LITTAB.__getitem__(lIdx).get("mnemonic") == operand:
+                        disp = LITTAB.__getitem__(lIdx).get("locctr")
+                        break
+                    lIdx += 1
+                
+#                print "LITTAB: %s" % hex(disp)
+                disp -= pcctr
+#                disp = disp & 0xFFF # casting unsigned
+#                print "disp: %s" % hex(disp)
+                                
+            else :
+                if STAB.get(operand) == None:
+                    disp = 0
+                else :
+                    disp = STAB.get(operand)
+                    
+                disp -= pcctr
+                disp = disp & 0xFFF # casting unsigned
+                        
+#                print "disp: %s" % hex(disp)
+
+
+#    print "label: %(label)s type_opcode: %(type)s" % {"label":label, "type":type(opcode)}
+
+    # literal - =
+    if mnemonic[0] == "=":
+        CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":opcode})
+    else :
         
-    pcctr = locctr + offset
-    
-    
-#    print type(opcode)
-#    print opcode
-    if type(opcode) == type(1):
-        opcode_hex = "%x".upper() % opcode
-#        print opcode_hex
-#        print hex(int(opcode_hex, 16) << (offset*(2-1)*8))
-        objectCode = 0x0
+#        if
         
-        # packing
-        oIdx = 0
-        while oIdx < len(opcode_hex):
-            objectCode << 4
-            objectCode |= int(opcode_hex[oIdx], 16)
-            oIdx += 1
-            print hex(objectCode)
+        # register
+        registerList = getRegister(operand)
+        if registerList != None:
+            nflag = 0
+            iflag = 0
+            bflag = 0
+            pflag = 0
+            disp = (registerList[1]<<4)
+                    
+        # only valid opcode - integer
+        if type(opcode) == type(1):
+            opcode_hex = "%x".upper() % opcode
+            objectCode = packing(opcode_hex)
             
-        objectCode |= nflag << 1
-        objectCode |= iflag
-        objectCode << 4
+            objectCode |= nflag << 1
+            objectCode |= iflag
+            objectCode <<= 4
+            
+            objectCode |= xflag << 3
+            objectCode |= bflag << 2
+            objectCode |= pflag << 1
+            objectCode |= eflag
+            objectCode <<= (((offset-1)*2-1)*4) # offset: 3 -> 12 / offset: 4 -> 20
+            
+            objectCode |= disp
+            
+            CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":objectCode})
         
-        objectCode |= xflag << 3
-        objectCode |= bflag << 2
-        objectCode |= pflag << 1
-        objectCode |= eflag
-        objectCode << 4
-        
-        print objectCode
-#        oIdx = 0
-#        while oIdx < len(opcode_hex):
-#            objectCode |= int(opcode_hex[oIdx], 16) << ((offset*2-oIdx+1)*8)
-#            print hex(objectCode)
-#            oIdx += 1
-#        
-
-        
-#        opcode_hex = long(opcode_hex, 16)
-#        print type(opcode_hex)
-#        print opcode_hex
-##        print type(opcode_hex)
-##        print type()
-##        opcode_hex = opcode_hex << (offset*(2-1)*8)
-##        print opcode_hex
-#        
-#    else:
-#        print "="+opcode
-    
-
     
     i += 1
     
 # === PASS2 END ================================================ #
 
+
+# === Print Immediate Code START ================================================ #
 i = 0
 while i < CodeLine.__len__():
     
@@ -448,6 +514,7 @@ while i < CodeLine.__len__():
     operand = ""
     opcode = ""
     commentLine = ""
+    objectCode = ""
     
     j = 0
     
@@ -467,7 +534,9 @@ while i < CodeLine.__len__():
             opcode = CodeLine[i][j].get("opcode")
         if CodeLine[i][j].get("commentLine") != None:
             commentLine = CodeLine[i][j].get("commentLine")
-            
+        if CodeLine[i][j].get("objectCode") != None:
+            objectCode = CodeLine[i][j].get("objectCode")
+                       
         j += 1
  
  
@@ -487,22 +556,35 @@ while i < CodeLine.__len__():
     
     try:
         opcode = "%x".upper() % opcode
+        objectCode = "%x".upper() % objectCode
+        
+        if objectCode.__len__() % 2 == 1:
+            objectCode = objectCode.zfill(objectCode.__len__()+1)
+        
     except:
         opcode = opcode
+        objectCode = objectCode
     
     
     if commentLine == "":
-        print "%(locctr_str)s\t%(label)s\t%(mnemonic)s\t%(operand)s\t%(opcode)s" \
-        % {"locctr_str":locctr_str, "label":label, "mnemonic":mnemonic, "operand":operand, "opcode":opcode}
-    else:
+        print "%(locctr_str)s\t%(label)s\t%(mnemonic)s\t%(operand)s\t%(objectCode)s" \
+        % {"locctr_str":locctr_str, "label":label, "mnemonic":mnemonic, "operand":operand, "objectCode":objectCode}
+    else :
         print "\t%(commentLine)s" % {"commentLine":commentLine}
     
     i += 1
+
+# === Print Immediate Code END ================================================ #
     
     
 #print STAB.get("WRREC")
 print STAB.items()
-#print LITTAB.items()
+
+i = 0
+while i < LITTAB.__len__():
+    print LITTAB.__getitem__(i)
+    i += 1
+    
 #print STAB.values()
 
 
