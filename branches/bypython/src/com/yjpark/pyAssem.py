@@ -381,15 +381,28 @@ while i < CodeLine.__len__():
             
         j += 1
         
-    print mnemonic
     # mnemonic -> opcode
     opcodeList = getOpcode(mnemonic)
     if opcodeList != None:
+        # directive
         if opcodeList[1] == 0:
+            if mnemonic == "BYTE" or mnemonic == "WORD":
+                op_ar_1 = operand.split("'")
+
+                if op_ar_1[0] == "X":
+                    objectCode = op_ar_1[1]
+                else :
+                    # !! hard cording
+                    objectCode = "000000"
+
+                CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":objectCode})
+                          
             i += 1
             continue
         
         offset = opcodeList[3]
+        operandNumber = opcodeList[4]
+    
    
     # simple
     nflag = 1
@@ -401,10 +414,9 @@ while i < CodeLine.__len__():
     # PC relative
     pflag = 1
 
-    
     # extended
     if mnemonic[0] == "+":
-        offset += 1
+        offset = 4
         bflag = 0
         pflag = 0
         eflag = 1
@@ -446,8 +458,6 @@ while i < CodeLine.__len__():
                 
             # literal - =
             elif operand[0] == "=":
-#                disp = int(LITTAB.__getattribute__(0), 16)
-#                print LITTAB.__getattribute__("")
                 lIdx = 0
                 while lIdx < LITTAB.__len__():
                     if LITTAB.__getitem__(lIdx).get("mnemonic") == operand:
@@ -464,17 +474,13 @@ while i < CodeLine.__len__():
                     disp = STAB.get(operand)
                     
                 disp -= pcctr
-                disp = disp & 0xFFF # casting unsigned
-         
-#        else :
-#             print mnemonic               
+                disp = disp & 0xFFF # casting unsigned         
 
     # literal - =
     if mnemonic[0] == "=":
         CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":opcode})
         
-    else :       
-        print mnemonic
+    else : 
         # LOOP x
         op_ar = operand.split(",")
 
@@ -498,15 +504,7 @@ while i < CodeLine.__len__():
                         disp = registerList[1]
                         
                     rIdx += 1
-        elif mnemonic == "BYTE":
-            op_ar_1 = operand.split("'")
-#            print op_ar_1
-            
-            if op_ar_1[0] == "C":
-                disp = op_ar_1[1]
-            elif op_ar_1[0] == "X":
-                disp = op_ar_1[1]
-            
+
         else :                
             # register
             registerList = getRegister(operand)
@@ -516,7 +514,8 @@ while i < CodeLine.__len__():
                 bflag = 0
                 pflag = 0
                 disp = (registerList[1]<<4)
-         
+                
+        
         # ======================================================== #           
         # only valid opcode - integer
         if type(opcode) == type(1):
@@ -526,14 +525,19 @@ while i < CodeLine.__len__():
             objectCode |= nflag << 1
             objectCode |= iflag
             objectCode <<= 4
-
-            objectCode |= xflag << 3
-            objectCode |= bflag << 2
-            objectCode |= pflag << 1
-            objectCode |= eflag
-            objectCode <<= (((offset-1)*2-1)*4) # offset: 3 -> 12 / offset: 4 -> 20
             
-            objectCode |= disp
+            # RSUB
+            if operandNumber == 0:
+                objectCode <<= 12
+                
+            else :
+                objectCode |= xflag << 3
+                objectCode |= bflag << 2
+                objectCode |= pflag << 1
+                objectCode |= eflag
+                objectCode <<= (((offset-1)*2-1)*4) # offset: 3 -> 12 / offset: 4 -> 20
+                objectCode |= disp
+            
             
             CodeLine[i].insert(CodeLine[i].__len__(), {"objectCode":objectCode})
     
@@ -616,12 +620,12 @@ while i < CodeLine.__len__():
     
     
 #print STAB.get("WRREC")
-print STAB.items()
-
-i = 0
-while i < LITTAB.__len__():
-    print LITTAB.__getitem__(i)
-    i += 1
+#print STAB.items()
+#
+#i = 0
+#while i < LITTAB.__len__():
+#    print LITTAB.__getitem__(i)
+#    i += 1
     
 #print STAB.values()
 
