@@ -55,6 +55,7 @@ public class VectorPrint extends CodeLineDTO {
 			);
 		}		
 	}	
+
 	
 	public void PrintImmediate(Vector<ImmediateDTO> vector) {
 		
@@ -81,7 +82,7 @@ public class VectorPrint extends CodeLineDTO {
 			
 			
 			for(int i=0; i<vector.size(); i++) {
-				CodeLineDTO v = vector.get(i);
+//				CodeLineDTO v = vector.get(i);
 				
 				writer.write(vector.get(i).toString());
 				writer.newLine();
