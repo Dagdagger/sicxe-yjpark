@@ -135,7 +135,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			{
 				fileOpenButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				fileOpenButton.setText("open");
-				fileOpenButton.setBounds(196, 7, 53, 20);
+				fileOpenButton.setBounds(196, 4, 53, 24);
 			}
 			{
 				headerGroup = new Group(this, SWT.NONE);
@@ -445,7 +445,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	*/
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
-		Shell shell = new Shell(display);
+		Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
 		shell.setText("Sic/XE Simulator(20022992 박용진)");
 		
 		MainApplication inst = new MainApplication(shell, SWT.NULL);
