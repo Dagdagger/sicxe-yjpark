@@ -1,4 +1,4 @@
-package Assembler;
+package com.yjpark.assembler;
 
 // Object Code 생성 및 관리를 위한 Class
 public class ObjectCode {

@@ -1,4 +1,4 @@
-package Assembler;
+package com.yjpark.assembler;
 
 
 import java.io.*;
