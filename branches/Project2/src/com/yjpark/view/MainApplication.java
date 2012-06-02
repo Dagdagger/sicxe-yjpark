@@ -446,7 +446,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 		Shell shell = new Shell(display);
-		shell.setText("Sic/XE Simulator");
+		shell.setText("Sic/XE Simulator(20022992 박용진)");
 		
 		MainApplication inst = new MainApplication(shell, SWT.NULL);
 		Point size = inst.getSize();
