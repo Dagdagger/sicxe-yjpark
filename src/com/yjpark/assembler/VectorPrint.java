@@ -1,4 +1,4 @@
-package Assembler;
+package com.yjpark.assembler;
 
 // Vector 출력 및 immediate data, object program 파일 출력을 위한 Class
 import java.io.*;

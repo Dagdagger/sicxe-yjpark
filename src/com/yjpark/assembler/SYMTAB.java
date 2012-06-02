@@ -1,4 +1,4 @@
-package Assembler;
+package com.yjpark.assembler;
 
 // SYMTAB 생성 및 관리를 위한 Class
 public class SYMTAB {
