@@ -1,6 +1,7 @@
 package com.yjpark.view;
 
 import java.io.*;
+//import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -13,7 +14,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import sp.dtopack.*;
+
 import com.cloudgarden.resource.SWTResourceManager;
+
+import com.yjpark.assembler.*;
 
 
 /**
@@ -421,6 +426,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				
 				// background
 				logStyledText.setBackground(whiteBg);
+				logStyledText.setEditable(false);
 			}
 			{
 				startAddressMemotyLabel = new Label(this, SWT.NONE);
@@ -572,18 +578,17 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			e.printStackTrace();
 		}
 		
-		String[] filterExt = { "*.*", "*.txt", ".obj" };
+		String[] filterExt = { "*.asm" };
 		fd.setFilterExtensions(filterExt);
 		String selected = fd.open();
 		
 		// set filename
 		fileNameText.setText(selected);
 		
-		// logging into logScrolledComposite
-		logStyledText.append(this.toString()+selected+"\n");
-		// move cursor to bottom
-		logStyledText.setSelection(logStyledText.getCharCount());
-		
+		// logging into logStyledText
+//		logWrite(LogLevel.I, this.toString()+selected+"\n");
+		logWrite(LogLV.I, selected);
+
 	}
 
 	
@@ -657,22 +662,77 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 		
 		
 		// save 여부 확인 할 것 // ---
-        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
-        MessageBox messageBox = new MessageBox(shell, style);
-        messageBox.setText("확인");
-        messageBox.setMessage("프로그램을 종료하시겠습니까?");
-        evt.doit = messageBox.open() == SWT.YES;
+//        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+//        MessageBox messageBox = new MessageBox(shell, style);
+//        messageBox.setText("확인");
+//        messageBox.setMessage("프로그램을 종료하시겠습니까?");
+//        evt.doit = messageBox.open() == SWT.YES;
 	}
 	
 	private void assembleButtonWidgetSelected(SelectionEvent evt) {
 		System.out.println("assembleButton.widgetSelected, event="+evt);
 		//TODO add your code for assembleButton.widgetSelected
 		
-		File af = new File(fileNameText.getText());
+		// redirection print
+		PrintStream stdout = System.out;
+		ByteArrayOutputStream bo = new ByteArrayOutputStream();
+		System.setOut(new PrintStream(bo, true));
+
+		// call Assembler
+		Assembler assem = new Assembler();
 		
-		if( ! (af.canRead() || af.isFile()) ) System.out.println("파일을 읽을 수 없습니다."); // message
+		// processing assembler
+		String fileName = fileNameText.getText().substring(
+				fileNameText.getText().lastIndexOf("\\")+1, fileNameText.getText().lastIndexOf('.'));
+		String inputFile = fileName+".asm";
+		String outputFile = fileName+".obj";
+		
+		assem.assembler(inputFile, outputFile);
+		
+		System.setOut(stdout);
+		
+		logWrite(LogLV.I, bo.toString());
+		
+		logWrite(LogLV.I, "Ready to Run");
+		// load object program
 		
 		
 		
 	}
+	
+	
+	/**
+	* V — Verbose (lowest priority)
+	* D — Debug
+	* I — Info (default priority)
+	* W — Warning
+	* E — Error
+	* F — Fatal
+	* S — Silent (highest priority, on which nothing is ever printed)
+	*/
+	enum LogLV {
+		V, D, I, W, E, F, S;
+	}
+	
+	public void logWrite(LogLV level, String logStr) {
+		String levelStr = "";
+		
+		switch(level) {
+			case V: levelStr = "Verbose"; break;
+			case D: levelStr = "Debug"; break;
+			case I: levelStr = "Info"; break;
+			case W: levelStr = "Warning"; break;
+			case E: levelStr = "Error"; break;
+			case F: levelStr = "Fatal"; break;
+			case S: levelStr = "Silent"; break;
+		}
+		
+		String logOutput = "["+levelStr+"] "+logStr;
+		
+		logStyledText.append(logOutput+"\n");
+		
+		// move cursor to bottom
+		logStyledText.setSelection(logStyledText.getCharCount());
+	}
+
 }
