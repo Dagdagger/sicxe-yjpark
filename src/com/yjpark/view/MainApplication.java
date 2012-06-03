@@ -1,23 +1,17 @@
 package com.yjpark.view;
 
+import java.io.*;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
 import com.cloudgarden.resource.SWTResourceManager;
 
@@ -47,6 +41,9 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private Text lengthProgramText;
 	private Label programNameLabel;
 	private Text useDeviceText;
+	private Button assembleButton;
+	private StyledText logStyledText;
+	private Text logText;
 	private Button exitButton;
 	private Button allRunButton;
 	private Button stepRunButton;
@@ -57,8 +54,6 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private Label instructionsLabel;
 	private Label targetAddressLabel;
 	private Label startAddressMemotyLabel;
-	private ScrolledComposite logScrolledComposite;
-	private Label logLabel;
 	private Text tRegisterHexText;
 	private Text sRegisterHexText;
 	private Text bRegisterHexText;
@@ -72,6 +67,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private Label bRegisterLabel;
 	private Label xeHexLabel;
 	private Label xeDecLabel;
+	private Label logLabel;
 	private Group xeRegisterGroup;
 	private Label hexLabel;
 	private Label decLabel;
@@ -105,6 +101,14 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private Menu fileMenu;
 	private MenuItem fileMenuItem;
 
+	
+	// background color for non-editable component
+	Color whiteBg = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
+	
+	// get current file path
+	File f = new File(".");
+	
+	
 	{
 		//Register as a resource user - SWTResourceManager will
 		//handle the obtaining and disposing of resources
@@ -114,6 +118,12 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	public MainApplication(Composite parent, int style) {
 		super(parent, style);
 		initGUI();
+		
+		fileOpenButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent evt) {
+				fileOpenButtonWidgetSelected(evt);
+			}
+		});
 	}
 	
 	/**
@@ -131,11 +141,24 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			{
 				fileNameText = new Text(this, SWT.BORDER);
 				fileNameText.setBounds(75, 7, 118, 20);
+
+				// background
+				fileNameText.setBackground(whiteBg);
 			}
 			{
 				fileOpenButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				fileOpenButton.setText("open");
 				fileOpenButton.setBounds(196, 4, 53, 24);
+			}
+			{
+				assembleButton = new Button(this, SWT.PUSH | SWT.CENTER);
+				assembleButton.setText("assemble");
+				assembleButton.setBounds(264, 4, 68, 24);
+				assembleButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent evt) {
+						assembleButtonWidgetSelected(evt);
+					}
+				});
 			}
 			{
 				headerGroup = new Group(this, SWT.NONE);
@@ -160,14 +183,23 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				{
 					programNameText = new Text(headerGroup, SWT.READ_ONLY | SWT.BORDER);
 					programNameText.setBounds(139, 20, 83, 20);
+					
+					// background
+					programNameText.setBackground(whiteBg);
 				}
 				{
 					startAddressText = new Text(headerGroup, SWT.READ_ONLY | SWT.BORDER);
 					startAddressText.setBounds(139, 47, 83, 20);
+					
+					// background
+					startAddressText.setBackground(whiteBg);
 				}
 				{
 					lengthProgramText = new Text(headerGroup, SWT.READ_ONLY | SWT.BORDER);
 					lengthProgramText.setBounds(139, 75, 83, 20);
+					
+					// background
+					lengthProgramText.setBackground(whiteBg);
 				}
 			}
 			{
@@ -183,6 +215,9 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				{
 					addressFirstInstructionText = new Text(endGroup, SWT.READ_ONLY | SWT.BORDER);
 					addressFirstInstructionText.setBounds(162, 34, 83, 20);
+					
+					// background
+					addressFirstInstructionText.setBackground(whiteBg);
 				}
 			}
 			{
@@ -228,38 +263,65 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				{
 					aRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					aRegisterDecText.setBounds(51, 35, 85, 20);
+					
+					// background
+					aRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					xRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					xRegisterDecText.setBounds(51, 55, 85, 20);
+					
+					// background
+					xRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					lRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					lRegisterDecText.setBounds(51, 75, 85, 20);
+					
+					// background
+					lRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					pcRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					pcRegisterDecText.setBounds(51, 95, 85, 20);
+					
+					// background
+					pcRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					swRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
-					swRegisterDecText.setBounds(51, 115, 174, 20);
+					swRegisterDecText.setBounds(51, 115, 173, 20);
+					
+					// background
+					swRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					aRegisterHexText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					aRegisterHexText.setBounds(141, 35, 83, 20);
+					
+					// background
+					aRegisterHexText.setBackground(whiteBg);
 				}
 				{
 					xRegisterHexText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					xRegisterHexText.setBounds(141, 55, 83, 20);
+					
+					// background
+					xRegisterHexText.setBackground(whiteBg);
 				}
 				{
 					lRegisterHexText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					lRegisterHexText.setBounds(141, 75, 83, 20);
+					
+					// background
+					lRegisterHexText.setBackground(whiteBg);
 				}
 				{
 					pcRegisterHexText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
 					pcRegisterHexText.setBounds(141, 95, 83, 20);
+					
+					// background
+					pcRegisterHexText.setBackground(whiteBg);
 				}
 			}
 			{
@@ -300,30 +362,52 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				{
 					bRegisterDecText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					bRegisterDecText.setBounds(51, 35, 85, 20);
+					
+					// background
+					bRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					sRegisterDecText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					sRegisterDecText.setBounds(51, 55, 85, 20);
+					
+					// background
+					sRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					tRegisterDecText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					tRegisterDecText.setBounds(51, 75, 85, 20);
+					
+					// background
+					tRegisterDecText.setBackground(whiteBg);
 				}
 				{
 					fRegisterText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
-					fRegisterText.setBounds(51, 95, 174, 20);
+					fRegisterText.setBounds(51, 95, 173, 20);
+					fRegisterText.setEditable(false);
+					
+					// background
+					fRegisterText.setBackground(whiteBg);
 				}
 				{
 					bRegisterHexText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					bRegisterHexText.setBounds(141, 35, 83, 20);
+					
+					// background
+					bRegisterHexText.setBackground(whiteBg);
 				}
 				{
 					sRegisterHexText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					sRegisterHexText.setBounds(141, 55, 83, 20);
+					
+					// background
+					sRegisterHexText.setBackground(whiteBg);
 				}
 				{
 					tRegisterHexText = new Text(xeRegisterGroup, SWT.READ_ONLY | SWT.BORDER);
 					tRegisterHexText.setBounds(141, 75, 83, 20);
+					
+					// background
+					tRegisterHexText.setBackground(whiteBg);
 				}
 			}
 			{
@@ -332,8 +416,11 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				logLabel.setBounds(12, 432, 144, 20);
 			}
 			{
-				logScrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL | SWT.BORDER);
-				logScrolledComposite.setBounds(12, 452, 506, 116);
+				logStyledText = new StyledText(this, SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
+				logStyledText.setBounds(12, 454, 506, 109);
+				
+				// background
+				logStyledText.setBackground(whiteBg);
 			}
 			{
 				startAddressMemotyLabel = new Label(this, SWT.NONE);
@@ -354,15 +441,24 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				startAddressMemoryText = new Text(this, SWT.RIGHT | SWT.READ_ONLY | SWT.BORDER);
 				startAddressMemoryText.setBounds(433, 109, 85, 20);
 				startAddressMemoryText.setText("0");
+				
+				// background
+				startAddressMemoryText.setBackground(whiteBg);
 			}
 			{
 				targetAddressText = new Text(this, SWT.RIGHT | SWT.READ_ONLY | SWT.BORDER);
 				targetAddressText.setBounds(433, 135, 85, 20);
+				
+				// background
+				targetAddressText.setBackground(whiteBg);
 			}
 			{
 				instructionsList = new List(this, SWT.V_SCROLL | SWT.BORDER);
 				instructionsList.setBounds(264, 193, 144, 233);
 				instructionsList.setBackground(SWTResourceManager.getColor(240, 240, 240));
+				
+				// background
+				instructionsList.setBackground(whiteBg);
 			}
 			{
 				useDeviceLabel = new Label(this, SWT.RIGHT);
@@ -373,6 +469,9 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				useDeviceText = new Text(this, SWT.READ_ONLY | SWT.BORDER);
 				useDeviceText.setSize(57, 30);
 				useDeviceText.setBounds(458, 219, 60, 20);
+				
+				// background
+				useDeviceText.setBackground(whiteBg);
 			}
 			{
 				stepRunButton = new Button(this, SWT.PUSH | SWT.CENTER);
@@ -388,6 +487,11 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				exitButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				exitButton.setText("\uc885\ub8cc");
 				exitButton.setBounds(433, 396, 85, 30);
+				exitButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent evt) {
+						exitButtonWidgetSelected(evt);
+					}
+				});
 			}
 			{
 				menu1 = new Menu(getShell(), SWT.BAR);
@@ -400,6 +504,11 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 						{
 							openFileMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
 							openFileMenuItem.setText("Open");
+							openFileMenuItem.addSelectionListener(new SelectionAdapter() {
+								public void widgetSelected(SelectionEvent evt) {
+									openFileMenuItemWidgetSelected(evt);
+								}
+							});
 						}
 						{
 							newFileMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
@@ -416,6 +525,11 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 						{
 							exitMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
 							exitMenuItem.setText("Exit");
+							exitMenuItem.addSelectionListener(new SelectionAdapter() {
+								public void widgetSelected(SelectionEvent evt) {
+									exitMenuItemWidgetSelected(evt);
+								}
+							});
 						}
 						fileMenuItem.setMenu(fileMenu);
 					}
@@ -439,18 +553,57 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 		}
 	}
 	
+	
+	/**
+	 * File Handle
+	 */
+	public void FileHandle(String command) {
+		FileDialog fd = null;
+		
+		if(command.equals("Open")) fd = new FileDialog(getShell(), SWT.OPEN);
+		else if(command.equals("Save")) fd = new FileDialog(getShell(), SWT.SAVE);
+		
+		fd.setText(command);
+	    		    
+		try {
+			fd.setFilterPath(f.getCanonicalPath());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String[] filterExt = { "*.*", "*.txt", ".obj" };
+		fd.setFilterExtensions(filterExt);
+		String selected = fd.open();
+		
+		// set filename
+		fileNameText.setText(selected);
+		
+		// logging into logScrolledComposite
+		logStyledText.append(this.toString()+selected+"\n");
+		// move cursor to bottom
+		logStyledText.setSelection(logStyledText.getCharCount());
+		
+	}
+
+	
 	/**
 	* Auto-generated main method to display this 
 	* org.eclipse.swt.widgets.Composite inside a new Shell.
 	*/
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
-		Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
+		final Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
 		shell.setText("Sic/XE Simulator(20022992 박용진)");
 		
 		MainApplication inst = new MainApplication(shell, SWT.NULL);
 		Point size = inst.getSize();
 		shell.setLayout(new FillLayout());
+		shell.addShellListener(new ShellAdapter() {
+			public void shellClosed(ShellEvent evt) {
+				shellShellClosed(evt, shell);
+			}
+		});
 		shell.layout();
 		if(size.x == 0 && size.y == 0) {
 			inst.pack();
@@ -465,5 +618,61 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				display.sleep();
 		}
 	}
-
+	
+	
+	/**
+	 * Event Handle
+	 */
+	private void fileOpenButtonWidgetSelected(SelectionEvent evt) {
+		System.out.println("fileOpenButton.widgetSelected, event="+evt);
+		//TODO add your code for fileOpenButton.widgetSelected
+		
+		FileHandle("Open");
+	}
+	
+	private void openFileMenuItemWidgetSelected(SelectionEvent evt) {
+		System.out.println("openFileMenuItem.widgetSelected, event="+evt);
+		//TODO add your code for openFileMenuItem.widgetSelected
+		
+		FileHandle("Open");
+	}
+	
+	private void exitMenuItemWidgetSelected(SelectionEvent evt) {
+		System.out.println("exitMenuItem.widgetSelected, event="+evt);
+		//TODO add your code for exitMenuItem.widgetSelected
+		
+		getShell().close();
+	}
+	
+	private void exitButtonWidgetSelected(SelectionEvent evt) {
+		System.out.println("exitButton.widgetSelected, event="+evt);
+		//TODO add your code for exitButton.widgetSelected
+		
+		getShell().close();
+	}
+	
+	private static void shellShellClosed(ShellEvent evt, Shell shell) {
+		System.out.println("shell.shellClosed, event="+evt);
+		//TODO add your code for shell.shellClosed
+		
+		
+		// save 여부 확인 할 것 // ---
+        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+        MessageBox messageBox = new MessageBox(shell, style);
+        messageBox.setText("확인");
+        messageBox.setMessage("프로그램을 종료하시겠습니까?");
+        evt.doit = messageBox.open() == SWT.YES;
+	}
+	
+	private void assembleButtonWidgetSelected(SelectionEvent evt) {
+		System.out.println("assembleButton.widgetSelected, event="+evt);
+		//TODO add your code for assembleButton.widgetSelected
+		
+		File af = new File(fileNameText.getText());
+		
+		if( ! (af.canRead() || af.isFile()) ) System.out.println("파일을 읽을 수 없습니다."); // message
+		
+		
+		
+	}
 }
