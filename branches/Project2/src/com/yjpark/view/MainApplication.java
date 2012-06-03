@@ -1,7 +1,6 @@
 package com.yjpark.view;
 
 import java.io.*;
-//import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -14,12 +13,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import sp.dtopack.*;
-
 import com.cloudgarden.resource.SWTResourceManager;
 
 import com.yjpark.assembler.*;
-
+import com.yjpark.loader.*;
 
 /**
 * This code was edited or generated using CloudGarden's Jigloo
@@ -108,10 +105,10 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 
 	
 	// background color for non-editable component
-	Color whiteBg = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
+	private Color whiteBg = Display.getDefault().getSystemColor(SWT.COLOR_WHITE);
 	
 	// get current file path
-	File f = new File(".");
+	private File f = new File(".");
 	
 	
 	{
@@ -215,7 +212,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				{
 					addressFirstInstructionLabel = new Label(endGroup, SWT.NONE);
 					addressFirstInstructionLabel.setText("Address of First Instruction \nin Object Program :");
-					addressFirstInstructionLabel.setBounds(8, 20, 151, 29);
+					addressFirstInstructionLabel.setBounds(8, 20, 151, 34);
 				}
 				{
 					addressFirstInstructionText = new Text(endGroup, SWT.READ_ONLY | SWT.BORDER);
@@ -694,9 +691,16 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 		logWrite(LogLV.I, bo.toString());
 		
 		logWrite(LogLV.I, "Ready to Run");
+		
+		
+		
 		// load object program
+		Loader loader = new Loader(outputFile);
+		loader.loading();
 		
-		
+		programNameText.setText(loader.getPgName());
+		startAddressText.setText(loader.getStartAddress());
+		lengthProgramText.setText(loader.getPgLength());
 		
 	}
 	
