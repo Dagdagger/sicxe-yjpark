@@ -18,20 +18,20 @@ public class Assembler {
 		
 		// 파일을 읽기 위한 변수 선언
 		File ifp = null;
-		String infile = "";
+		String inFile = "";
 		
 		// 입력파일을 실행인자로 입력 받거나 없으면 기본 파일명으로 설정
 		if (inputFile.length() < 0) {
-			infile = "input.txt";
+			inFile = "input.txt";
 		} else {
-			infile = inputFile;
+			inFile = inputFile;
 		}
 		
-		// 파일을 읽어드리고, 해당 파일이 없으면 오류 메세지 출력
+		// 파일을 읽어들이고, 해당 파일이 없으면 오류 메세지 출력
 		try {
-			ifp = new File(infile);
+			ifp = new File(inFile);
 		} catch (Exception e) {
-			System.out.println(infile+" 파일이 없습니다.");
+			System.out.println(inFile+" 파일이 없습니다.");
 			e.printStackTrace();
 			System.exit(1);
 		}

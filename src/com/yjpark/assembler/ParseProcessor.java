@@ -685,7 +685,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 //		pv.PrintESTAB(ESTAB);
 //		pv.PrintLITTAB(LITTAB);
 //		pv.PrintSTAB(STAB);
-		pv.PrintObjectCode(OCODE);
+//		pv.PrintObjectCode(OCODE);
 		
 		// 해당 vertor를 반환한다.
 		return CLDTO;
