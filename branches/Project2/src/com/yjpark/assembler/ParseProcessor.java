@@ -10,6 +10,9 @@ import sp.dtopack.*;
 //Parsing 처리 및 Object Program 출력을 위한 Class
 public class ParseProcessor implements XEToyAssembler2 {
 	
+	// output filename // ---
+	String outputName = "";
+	
 	// SYMTAB 생성하기 위한 vector 선언
 	// 각 method 에서 공유하기 위해 클래스 변수로 선언
 	static Vector<SYMTAB> STAB = new Vector<SYMTAB>();
@@ -24,6 +27,11 @@ public class ParseProcessor implements XEToyAssembler2 {
 	
 	// 기본 생성자
 	public ParseProcessor() {}
+	
+	// 파일명 설정 // ---
+	public ParseProcessor(String outputName) {
+		this.outputName = outputName;
+	}
 
 	// 입력받은 파일 내용을 모두 분석하여 Vector 타입에 담아 반환한다.
 	@Override
@@ -677,7 +685,7 @@ public class ParseProcessor implements XEToyAssembler2 {
 //		pv.PrintESTAB(ESTAB);
 //		pv.PrintLITTAB(LITTAB);
 //		pv.PrintSTAB(STAB);
-//		pv.PrintObjectCode(OCODE);
+		pv.PrintObjectCode(OCODE);
 		
 		// 해당 vertor를 반환한다.
 		return CLDTO;
@@ -940,8 +948,12 @@ public class ParseProcessor implements XEToyAssembler2 {
 		// 화면 출력
 //		pv.PrintObjectProgram(OPV);
 		
-		// 파일 출력
-		pv.printObjectProg(OPV);
+		// 파일 출력 // ---
+		if(this.outputName.equals(""))
+			pv.printObjectProg(OPV);
+		else 
+			pv.printObjectProg(OPV, outputName);
+		
 		
 		// 해당 vertor를 반환한다.
 		return CLDTO;

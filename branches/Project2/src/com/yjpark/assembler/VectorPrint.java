@@ -130,14 +130,19 @@ public class VectorPrint extends CodeLineDTO {
 		return operand2;
 	}
 	
-	// Object Program 파일에 출력
+	// Object Program 파일에 출력 // ---
 	public void printObjectProg(Vector<ObjectProgram> vector) {
 		// TODO Auto-generated method stub
-		
+		printObjectProg(vector, "output.txt");
+	}
+	
+	// 파일명 입력을 받음 overload   // ---
+	public void printObjectProg(Vector<ObjectProgram> vector, String fileName) {
+		// TODO Auto-generated method stub
 		try {
 			// 전달받은 Object Program 을 output.txt 파일에 작성한다.
 			// 출력 파일 열기
-			File fp = new File("output.txt");
+			File fp = new File(fileName);
 			BufferedWriter writer = new BufferedWriter(new FileWriter(fp));
 			
 			for(int i=0; i<vector.size(); i++) {
@@ -157,6 +162,8 @@ public class VectorPrint extends CodeLineDTO {
 			
 			// BufferedWrite 를 종료한다.
 			writer.close();
+			
+			System.out.println("Completed Assemble:"+fileName);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
