@@ -1,6 +1,7 @@
 package com.yjpark.view;
 
 import java.io.*;
+import java.util.Vector;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -693,9 +694,50 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 		Loader loader = new Loader(outputFile);
 		loader.loading();
 		
+		// Header Record
 		programNameText.setText(loader.getPgName());
 		startAddressText.setText(loader.getStartAddress());
 		lengthProgramText.setText(loader.getPgLength());
+		
+		// End Record
+		addressFirstInstructionText.setText(loader.getAddressFirstInstruction());
+		
+		// controlSection
+		Vector<Object> controlSection = loader.getControlSection();
+		
+		for(int idx = 0; idx < controlSection.size(); idx++) {
+			if(controlSection.get(idx).equals("<Start>")) {
+				
+				@SuppressWarnings("unchecked")
+				Vector<String> HRECORD = (Vector<String>) controlSection.get(++idx);
+				System.out.println(HRECORD.toString());
+				
+				@SuppressWarnings("unchecked")
+				Vector<String> EXTDEF = (Vector<String>) controlSection.get(++idx);
+				System.out.println(EXTDEF.toString());
+				
+				@SuppressWarnings("unchecked")
+				Vector<String> EXTREF = (Vector<String>) controlSection.get(++idx);
+				System.out.println(EXTREF.toString());
+				
+				@SuppressWarnings("unchecked")
+				Vector<String> TRECORD = (Vector<String>) controlSection.get(++idx);
+				System.out.println(TRECORD.toString());
+				
+				@SuppressWarnings("unchecked")
+				Vector<String> MRECORD = (Vector<String>) controlSection.get(++idx);
+				System.out.println(MRECORD.toString());
+				
+				if(controlSection.get(idx).equals("<End>")) {
+					break;
+				}
+				
+			}
+		}
+		
+		// Instruction
+//		Vector<String> instructionList = loader.getTRECORD();
+//		System.out.println(instructionList.toString());
 		
 	}
 	
