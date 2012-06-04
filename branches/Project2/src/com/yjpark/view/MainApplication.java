@@ -3,14 +3,10 @@ package com.yjpark.view;
 import java.io.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import com.cloudgarden.resource.SWTResourceManager;
@@ -45,7 +41,6 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private Text useDeviceText;
 	private Button assembleButton;
 	private StyledText logStyledText;
-	private Text logText;
 	private Button exitButton;
 	private Button allRunButton;
 	private Button stepRunButton;
