@@ -22,10 +22,14 @@ public class Loader {
 	
 	private String objectFile = "";
 	
+	// for control section
+	private Vector<Object> controlSection = new Vector<Object>();
+	
 	// for Header record
 	private String pgName = "";
 	private String startAddress = "";
 	private String pgLength = "";
+	private Vector<String> HRECORD = new Vector<String>();
 	
 	// for External Definition record
 	private Vector<String> EXTDEF = new Vector<String>();
@@ -40,7 +44,7 @@ public class Loader {
 	private Vector<String> MRECORD = new Vector<String>();
 	
 	// for End record
-	private String firstInstructionAddress = "";
+	private String addressFirstInstruction = "";
 	
 	// 기본 생성자
 	public Loader() {}
@@ -49,6 +53,10 @@ public class Loader {
 		this.objectFile = objectFile;
 	}
 
+	public Vector<Object> getControlSection() {
+		return controlSection;
+	}
+	
 	public String getPgName() {
 		return pgName;
 	}
@@ -59,6 +67,10 @@ public class Loader {
 	
 	public String getPgLength() {
 		return pgLength;
+	}
+
+	public Vector<String> getHRECORD() {
+		return HRECORD;
 	}
 	
 	public Vector<String> getEXTDEF() {
@@ -77,8 +89,8 @@ public class Loader {
 		return MRECORD;
 	}
 	
-	public String getFirstInstructionAddress() {
-		return firstInstructionAddress;
+	public String getAddressFirstInstruction() {
+		return addressFirstInstruction;
 	}
 	
 	/**
@@ -88,8 +100,12 @@ public class Loader {
 	 */	
 	public void doHeader(String line) {
 		this.pgName = line.substring(1, 6).trim();
-		this.startAddress = line.substring(7, 12).trim();
-		this.pgLength = line.substring(13, 19).trim();	
+		this.startAddress = line.substring(6, 13).trim();
+		this.pgLength = line.substring(13).trim();
+		
+		this.HRECORD.add(line.substring(1, 6).trim());
+		this.HRECORD.add(line.substring(6, 13).trim());
+		this.HRECORD.add(line.substring(13).trim());	
 	}
 	
 	/**
@@ -120,9 +136,10 @@ public class Loader {
 	 * 9~68(Maximum) - Instruction
 	 */
 	public void doText(String line) {
-		for(int i = 1; i < line.length(); i+=2) {
+		for(int i = 9; i < line.length(); i+=2) {
 			// 2자리씩 저장
-			this.TRECORD.add(line.substring(1*i, 1*i+1).trim());
+			this.TRECORD.add(line.substring(1*i, 1*i+2).trim());
+//			System.out.println(i+":"+line.substring(1*i, 1*i+2).trim());
 		}	
 	}
 
@@ -159,9 +176,9 @@ public class Loader {
 	public void doModification(String line) {
 		for(int i = 1; i < line.length(); i+=15) {
 			this.MRECORD.add(line.substring(1*i, 1*i+6).trim());
-			this.MRECORD.add(line.substring(1*i+7, 1*i+8).trim());
-			this.MRECORD.add(line.substring(1*i+9, 1*i+9).trim());
-			this.MRECORD.add(line.substring(1*i+10).trim());
+			this.MRECORD.add(line.substring(1*i+6, 1*i+8).trim());
+			this.MRECORD.add(line.substring(1*i+8, 1*i+9).trim());
+			this.MRECORD.add(line.substring(1*i+9).trim());
 		}
 	}
 
@@ -169,7 +186,32 @@ public class Loader {
 	 * 1~6 - First Instruction Address
 	 */
 	public void doEnd(String line) {
-		this.firstInstructionAddress = line.substring(1, 6).trim();
+		this.addressFirstInstruction = line.substring(1, 7).trim();
+	}
+	
+	
+	/**
+	 *  Move and Store Vector HRECORD, EXTDEF, EXTREF, TRECORD, MRECORD (except END)
+	 *  clear Vector
+	 */
+	public void seperateContolSection() {
+		controlSection.add(new String("<Start>"));
+		
+		// store
+		controlSection.add(this.HRECORD.clone());
+		controlSection.add(this.EXTDEF.clone());
+		controlSection.add(this.EXTREF.clone());
+		controlSection.add(this.TRECORD.clone());
+		controlSection.add(this.MRECORD.clone());
+		
+		controlSection.add(new String("<End>"));
+		
+		// clear
+		this.HRECORD.clear();
+		this.EXTDEF.clear();
+		this.EXTREF.clear();
+		this.TRECORD.clear();
+		this.MRECORD.clear();
 	}
 
 	// start point
@@ -217,9 +259,7 @@ public class Loader {
 				char record = lineArray[0];
 				
 				if(record == 'H') { // Header record
-					// program name 이 없는 경우 즉, 첫번째만 처리 / 나머지는 control section name
-					if(this.pgName.equals(""))
-						doHeader(line);
+					doHeader(line);
 				} else if(record == 'D') {	// External Definition record
 					doDefinition(line);
 				} else if(record == 'R') {	// External Reference record
@@ -229,11 +269,17 @@ public class Loader {
 				} else if(record == 'M') {	// Modification record
 					doModification(line);
 				} else if(record == 'E') {	// End record
-					// firstInstructionAddress 이 없는 경우 즉, 첫번째만 처리 / 나머지는 control section
-					if(this.firstInstructionAddress.equals(""))
+					// addressFirstInstruction 이 없는 경우 즉, 첫번째만 처리 / 나머지는 control section
+					if(this.addressFirstInstruction.equals(""))
 						doEnd(line);
+					
+					// seperate by control section
+					seperateContolSection();
 				}
 			}
+
+			System.out.println("ControlSection:"+this.controlSection.toString());
+			System.out.println(this.controlSection.size());
 			
 			// Modify Text Record
 //			doModifyText();
