@@ -215,7 +215,7 @@ public class Loader {
 	}
 
 	// start point
-	public void loading() {
+	public void init() {
 		
 		// 파일을 읽기 위한 변수 선언
 		File ifp = null;
@@ -297,5 +297,19 @@ public class Loader {
 			e.printStackTrace();
 		}
 
+	}
+	
+	
+	public void loading() {
+		Stack<Integer> stack = new Stack();
+		
+		System.out.println("before stack:"+stack);
+		
+		stack.push(new Integer(1));
+		
+		System.out.println("after push stack:"+stack);
+		
+		System.out.println("Object stack:"+System.identityHashCode(stack));
+		
 	}
 }

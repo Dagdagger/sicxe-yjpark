@@ -573,14 +573,18 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 		
 		String[] filterExt = { "*.asm" };
 		fd.setFilterExtensions(filterExt);
+		
 		String selected = fd.open();
 		
-		// set filename
-		fileNameText.setText(selected);
-		
-		// logging into logStyledText
-//		logWrite(LogLevel.I, this.toString()+selected+"\n");
-		logWrite(LogLV.I, selected);
+		//
+		if(selected != null) {
+			// set filename
+			fileNameText.setText(selected);
+			
+			// logging into logStyledText
+	//		logWrite(LogLevel.I, this.toString()+selected+"\n");
+			logWrite(LogLV.I, selected);
+		}
 
 	}
 
@@ -665,80 +669,85 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	private void assembleButtonWidgetSelected(SelectionEvent evt) {
 		System.out.println("assembleButton.widgetSelected, event="+evt);
 		//TODO add your code for assembleButton.widgetSelected
-		
-		// redirection print
-		PrintStream stdout = System.out;
-		ByteArrayOutputStream bo = new ByteArrayOutputStream();
-		System.setOut(new PrintStream(bo, true));
 
-		// call Assembler
-		Assembler assem = new Assembler();
-		
-		// processing assembler
-		String fileName = fileNameText.getText().substring(
-				fileNameText.getText().lastIndexOf("\\")+1, fileNameText.getText().lastIndexOf('.'));
-		String inputFile = fileName+".asm";
-		String outputFile = fileName+".obj";
-		
-		assem.assembler(inputFile, outputFile);
-		
-		System.setOut(stdout);
-		
-		logWrite(LogLV.I, bo.toString());
-		
-		logWrite(LogLV.I, "Ready to Run");
-		
-		
-		
-		// load object program
-		Loader loader = new Loader(outputFile);
-		loader.loading();
-		
-		// Header Record
-		programNameText.setText(loader.getPgName());
-		startAddressText.setText(loader.getStartAddress());
-		lengthProgramText.setText(loader.getPgLength());
-		
-		// End Record
-		addressFirstInstructionText.setText(loader.getAddressFirstInstruction());
-		
-		// controlSection
-		Vector<Object> controlSection = loader.getControlSection();
-		
-		for(int idx = 0; idx < controlSection.size(); idx++) {
-			if(controlSection.get(idx).equals("<Start>")) {
-				
-				@SuppressWarnings("unchecked")
-				Vector<String> HRECORD = (Vector<String>) controlSection.get(++idx);
-				System.out.println(HRECORD.toString());
-				
-				@SuppressWarnings("unchecked")
-				Vector<String> EXTDEF = (Vector<String>) controlSection.get(++idx);
-				System.out.println(EXTDEF.toString());
-				
-				@SuppressWarnings("unchecked")
-				Vector<String> EXTREF = (Vector<String>) controlSection.get(++idx);
-				System.out.println(EXTREF.toString());
-				
-				@SuppressWarnings("unchecked")
-				Vector<String> TRECORD = (Vector<String>) controlSection.get(++idx);
-				System.out.println(TRECORD.toString());
-				
-				@SuppressWarnings("unchecked")
-				Vector<String> MRECORD = (Vector<String>) controlSection.get(++idx);
-				System.out.println(MRECORD.toString());
-				
-				if(controlSection.get(idx).equals("<End>")) {
-					break;
+		//
+		if(!fileNameText.getText().equals("")) {
+			
+			// redirection print
+			PrintStream stdout = System.out;
+			ByteArrayOutputStream bo = new ByteArrayOutputStream();
+			System.setOut(new PrintStream(bo, true));
+	
+			// call Assembler
+			Assembler assem = new Assembler();
+			
+			// processing assembler
+			String fileName = fileNameText.getText().substring(
+					fileNameText.getText().lastIndexOf("\\")+1, fileNameText.getText().lastIndexOf('.'));
+			String inputFile = fileName+".asm";
+			String outputFile = fileName+".obj";
+			
+			assem.assembler(inputFile, outputFile);
+			
+			System.setOut(stdout);
+			
+			logWrite(LogLV.I, bo.toString());
+			
+			logWrite(LogLV.I, "Ready to Run");
+			
+			// =================================== //
+			// load object program
+			Loader loader = new Loader(outputFile);
+			loader.init();
+			
+			// Header Record
+			programNameText.setText(loader.getPgName());
+			startAddressText.setText(loader.getStartAddress());
+			lengthProgramText.setText(loader.getPgLength());
+			
+			// End Record
+			addressFirstInstructionText.setText(loader.getAddressFirstInstruction());
+			
+			// controlSection
+			Vector<Object> controlSection = loader.getControlSection();
+			
+			for(int idx = 0; idx < controlSection.size(); idx++) {
+				if(controlSection.get(idx).equals("<Start>")) {
+					
+					@SuppressWarnings("unchecked")
+					Vector<String> HRECORD = (Vector<String>) controlSection.get(++idx);
+					System.out.println(HRECORD.toString());
+					
+					@SuppressWarnings("unchecked")
+					Vector<String> EXTDEF = (Vector<String>) controlSection.get(++idx);
+					System.out.println(EXTDEF.toString());
+					
+					@SuppressWarnings("unchecked")
+					Vector<String> EXTREF = (Vector<String>) controlSection.get(++idx);
+					System.out.println(EXTREF.toString());
+					
+					@SuppressWarnings("unchecked")
+					Vector<String> TRECORD = (Vector<String>) controlSection.get(++idx);
+					System.out.println(TRECORD.toString());
+					
+					@SuppressWarnings("unchecked")
+					Vector<String> MRECORD = (Vector<String>) controlSection.get(++idx);
+					System.out.println(MRECORD.toString());
+					
+					if(controlSection.get(idx).equals("<End>")) {
+						break;
+					}
+					
 				}
-				
 			}
-		}
-		
-		// Instruction
-//		Vector<String> instructionList = loader.getTRECORD();
+			
+			//
+			loader.loading();
+			
+			// Instruction
+	//		Vector<String> instructionList = loader.getTRECORD();
 //		System.out.println(instructionList.toString());
-		
+		}
 	}
 	
 	
