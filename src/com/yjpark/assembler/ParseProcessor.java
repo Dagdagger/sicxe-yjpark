@@ -23,6 +23,8 @@ public class ParseProcessor implements XEToyAssembler2 {
 	// address, objectCode
 	static Vector<ObjectCode> OCODE = new Vector<ObjectCode>();
 	
+	Vector<ObjectProgram> OPV = new Vector<ObjectProgram>();
+	
 	VectorPrint pv = new VectorPrint();
 	
 	// 기본 생성자
@@ -31,6 +33,23 @@ public class ParseProcessor implements XEToyAssembler2 {
 	// 파일명 설정 // ---
 	public ParseProcessor(String outputName) {
 		this.outputName = outputName;
+	}
+
+	// // ---
+	public Vector<SYMTAB> getSTAB() {
+		return STAB;
+	}
+
+	public Vector<ESTAB> getESTAB() {
+		return ESTAB;
+	}
+
+	public Vector<ObjectCode> getOCODE() {
+		return OCODE;
+	}
+	
+	public Vector<ObjectProgram> getOPV() {
+		return OPV;
 	}
 
 	// 입력받은 파일 내용을 모두 분석하여 Vector 타입에 담아 반환한다.
@@ -707,7 +726,9 @@ public class ParseProcessor implements XEToyAssembler2 {
 		// objectCode 설정
 		String objectCode = "";
 
-		Vector<ObjectProgram> OPV = new Vector<ObjectProgram>();
+//		Vector<ObjectProgram> OPV = new Vector<ObjectProgram>();
+		Vector<ObjectProgram> OPV = this.OPV;
+		
 		OPV.clear();
 		
 		ObjectProgram op = new ObjectProgram();
@@ -945,8 +966,12 @@ public class ParseProcessor implements XEToyAssembler2 {
 
 		}
 
-		// 화면 출력
-//		pv.PrintObjectProgram(OPV);
+		
+		// Object Program // ---
+		this.OPV = OPV;
+		
+		// 화면 출력 // ---
+//		pv.PrintObjectProgram(this.OPV);
 		
 		// 파일 출력 // ---
 		if(this.outputName.equals(""))
