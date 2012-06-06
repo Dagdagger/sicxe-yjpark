@@ -223,10 +223,12 @@ public class VectorPrint extends CodeLineDTO {
 	public void PrintESTAB(Vector<ESTAB> vector) {
 	
 		System.out.println("line:"
-				+" CSECT"
-				+"\tSymbol"
-				+"\tAddress"
-				+"\tLength"
+				+" getCsectIdx"
+				+"\tgetContolSection"
+				+"\tgetSymbolIdx"
+				+"\tgetSymbol"
+				+"\tgetAddress"
+				+"\tgetLength"
 		);
 		
 		for(int i=0; i<vector.size(); i++) {

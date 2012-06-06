@@ -14,6 +14,7 @@ import com.cloudgarden.resource.SWTResourceManager;
 
 import com.yjpark.assembler.*;
 import com.yjpark.loader.*;
+import com.yjpark.resource.*;
 
 /**
 * This code was edited or generated using CloudGarden's Jigloo
@@ -27,7 +28,7 @@ import com.yjpark.loader.*;
 * THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
 * LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
 */
-public class MainApplication extends org.eclipse.swt.widgets.Composite {
+public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 
 	private Menu menu1;
 	private Group headerGroup;
@@ -106,22 +107,26 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	// get current file path
 	private File f = new File(".");
 	
+	// for registers
+	private Vector<Register> registers = new Vector<Register>();
+	
 	
 	{
 		//Register as a resource user - SWTResourceManager will
 		//handle the obtaining and disposing of resources
 		SWTResourceManager.registerResourceUser(this);
 	}
-
-	public MainApplication(Composite parent, int style) {
+	
+	public VisualSimulator(Composite parent, int style) {
 		super(parent, style);
 		initGUI();
+	
+		// call Init Manager
+		InitManager initMgr = new InitManager();
 		
-		fileOpenButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent evt) {
-				fileOpenButtonWidgetSelected(evt);
-			}
-		});
+		initMgr.init();
+		this.registers = initMgr.getRegisters();
+
 	}
 	
 	/**
@@ -147,6 +152,11 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				fileOpenButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				fileOpenButton.setText("open");
 				fileOpenButton.setBounds(196, 4, 53, 24);
+				fileOpenButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent evt) {
+						fileOpenButtonWidgetSelected(evt);
+					}
+				});
 			}
 			{
 				assembleButton = new Button(this, SWT.PUSH | SWT.CENTER);
@@ -463,6 +473,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				useDeviceLabel = new Label(this, SWT.RIGHT);
 				useDeviceLabel.setText("\uc0ac\uc6a9\uc911\uc778 \uc7a5\uce58");
 				useDeviceLabel.setBounds(433, 193, 85, 20);
+				useDeviceLabel.setVisible(false);
 			}
 			{
 				useDeviceText = new Text(this, SWT.READ_ONLY | SWT.BORDER);
@@ -471,16 +482,19 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 				
 				// background
 				useDeviceText.setBackground(whiteBg);
+				useDeviceText.setVisible(false);
 			}
 			{
-				stepRunButton = new Button(this, SWT.PUSH | SWT.CENTER);
+				stepRunButton = new Button(this, SWT.CENTER);
 				stepRunButton.setText("\uc2e4\ud589(1 Step)");
 				stepRunButton.setBounds(433, 304, 85, 30);
+				stepRunButton.setEnabled(false);
 			}
 			{
 				allRunButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				allRunButton.setText("\uc2e4\ud589(All)");
 				allRunButton.setBounds(433, 350, 85, 30);
+				allRunButton.setEnabled(false);
 			}
 			{
 				exitButton = new Button(this, SWT.PUSH | SWT.CENTER);
@@ -582,7 +596,6 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			fileNameText.setText(selected);
 			
 			// logging into logStyledText
-	//		logWrite(LogLevel.I, this.toString()+selected+"\n");
 			logWrite(LogLV.I, selected);
 		}
 
@@ -594,11 +607,14 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 	* org.eclipse.swt.widgets.Composite inside a new Shell.
 	*/
 	public static void main(String[] args) {
+
+		
+		// VisualSimulator
 		Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
 		shell.setText("Sic/XE Simulator(20022992 박용진)");
 		
-		MainApplication inst = new MainApplication(shell, SWT.NULL);
+		VisualSimulator inst = new VisualSimulator(shell, SWT.NULL);
 		Point size = inst.getSize();
 		shell.setLayout(new FillLayout());
 		shell.addShellListener(new ShellAdapter() {
@@ -677,9 +693,9 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			PrintStream stdout = System.out;
 			ByteArrayOutputStream bo = new ByteArrayOutputStream();
 			System.setOut(new PrintStream(bo, true));
-	
-			// call Assembler
-			Assembler assem = new Assembler();
+			
+			// SIC/XE Runable Manager
+			SicxeRunableManager runMgr = new SicxeRunableManager();
 			
 			// processing assembler
 			String fileName = fileNameText.getText().substring(
@@ -687,7 +703,7 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			String inputFile = fileName+".asm";
 			String outputFile = fileName+".obj";
 			
-			assem.assembler(inputFile, outputFile);
+			runMgr.assembler(inputFile, outputFile);
 			
 			System.setOut(stdout);
 			
@@ -695,58 +711,150 @@ public class MainApplication extends org.eclipse.swt.widgets.Composite {
 			
 			logWrite(LogLV.I, "Ready to Run");
 			
-			// =================================== //
-			// load object program
-			Loader loader = new Loader(outputFile);
-			loader.init();
 			
-			// Header Record
-			programNameText.setText(loader.getPgName());
-			startAddressText.setText(loader.getStartAddress());
-			lengthProgramText.setText(loader.getPgLength());
+			// set enabled
+			stepRunButton.setEnabled(true);
+			allRunButton.setEnabled(true);
 			
-			// End Record
-			addressFirstInstructionText.setText(loader.getAddressFirstInstruction());
 			
-			// controlSection
-			Vector<Object> controlSection = loader.getControlSection();
+//			System.out.println(this.registers);
 			
-			for(int idx = 0; idx < controlSection.size(); idx++) {
-				if(controlSection.get(idx).equals("<Start>")) {
+			// set UI for first step
+			Vector<ObjectProgram> objectProg = runMgr.getObjectProgramVector();
+			Vector<SYMTAB> STAB = runMgr.getSTAB();
+			Vector<ESTAB> ESTAB = runMgr.getESTAB();
+			Vector<ObjectCode> ObjectCode = runMgr.getObjectCode();
 					
-					@SuppressWarnings("unchecked")
-					Vector<String> HRECORD = (Vector<String>) controlSection.get(++idx);
-					System.out.println(HRECORD.toString());
+			int pgLengthTotal = 0;
+			for(int i=0; i<objectProg.size(); i++) {
+				ObjectProgram pg = objectProg.get(i);
+				
+				if(i == 0) {
+					// Header Record
+					programNameText.setText(pg.getPgName());
+					startAddressText.setText(pg.getStartAddress());
+					lengthProgramText.setText(pg.getPgLength());
 					
-					@SuppressWarnings("unchecked")
-					Vector<String> EXTDEF = (Vector<String>) controlSection.get(++idx);
-					System.out.println(EXTDEF.toString());
-					
-					@SuppressWarnings("unchecked")
-					Vector<String> EXTREF = (Vector<String>) controlSection.get(++idx);
-					System.out.println(EXTREF.toString());
-					
-					@SuppressWarnings("unchecked")
-					Vector<String> TRECORD = (Vector<String>) controlSection.get(++idx);
-					System.out.println(TRECORD.toString());
-					
-					@SuppressWarnings("unchecked")
-					Vector<String> MRECORD = (Vector<String>) controlSection.get(++idx);
-					System.out.println(MRECORD.toString());
-					
-					if(controlSection.get(idx).equals("<End>")) {
-						break;
-					}
-					
+					// End Record
+					addressFirstInstructionText.setText(pg.getEndStr().substring(2));
 				}
+				
+				pgLengthTotal += Integer.parseInt(pg.getPgLength(), 16);
+				
+				if (i == 1) {
+					ESTAB v = ESTAB.get(4); // RDREC
+					v.setAddress(pgLengthTotal);
+				}
+				
+				if(i == 2) {
+					ESTAB v = ESTAB.get(5); // WDREC
+					v.setAddress(pgLengthTotal);	
+				}
+				
+				System.out.println(pg.getPgName()
+									+"\t"+pg.getStartAddress()
+									+"\t"+pg.getPgLength()
+									+"\t"+pg.getExtDef()
+									+"\t"+pg.getExtRef()
+									+"\t"+pg.getTextStr()
+									+"\t"+pg.getModStr()
+									+"\t"+pg.getEndStr()
+				);
 			}
 			
-			//
-			loader.loading();
+			// address loading & modification
+			for(int i=0; i<ESTAB.size(); i++) {
+				ESTAB v = ESTAB.get(i);
+
+				System.out.println(i+":"
+									+" "+v.getCsectIdx()
+									+"\t"+v.getContolSection()
+									+"\t"+v.getSymbolIdx()
+									+"\t"+v.getSymbol()
+									+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
+									+"\t"+v.getLength()
+				);
+			}		
 			
-			// Instruction
-	//		Vector<String> instructionList = loader.getTRECORD();
-//		System.out.println(instructionList.toString());
+			
+			// set instruction
+			Vector<String> instructionVector = new Vector<String>();
+			instructionVector.clear();
+			for(int i=4; i<ObjectCode.size(); i++) {
+				ObjectCode oc = ObjectCode.get(i);
+				
+				instructionVector.add(oc.getObjectCode());
+				
+				// List 에 표시
+				instructionsList.add(oc.getObjectCode());
+				
+//				System.out.println("instructionVector:"+oc.getObjectCode());
+			}
+//			System.out.println(instructionVector.toString());
+			
+			//
+			int startAddressInMemory = instructionVector.hashCode();
+			startAddressMemoryText.setText(Integer.toHexString(startAddressInMemory).toUpperCase());
+			
+			int targetAddress = startAddressInMemory;
+			
+			final int OPCODE_MASK_BIT = 252;
+			final int NI_MASK_BIT = 3;
+			final int XBPE_MASK_BIT = 240;
+			final int DISP_MASK_BIT = 15;
+			
+			OPTAB opt = new OPTAB();
+			
+			for(int inst = 0; inst < instructionVector.size(); inst++) {
+				instructionsList.setSelection(inst);
+				targetAddressText.setText(Integer.toHexString(targetAddress).toUpperCase());
+				
+				String instruction = instructionVector.get(inst);
+				int instructionInt = Integer.parseInt(instruction.substring(0, 2), 16);
+				
+				String opcode = Integer.toHexString(instructionInt & OPCODE_MASK_BIT);
+				int opcodeInt = instructionInt & OPCODE_MASK_BIT;
+				String mnemonic = opt.getMNEMONIC(opcodeInt);
+				
+				int formattype = instruction.length();
+				
+				String disp = instruction.substring(3);
+				
+//				ResourceManager rMgr = new ResourceManager();
+//				this.registers = rMgr.getRegisters();
+//				this.registers.get(0)
+				
+				// 0 - register Accumulator
+				// 1 - register X index for loop
+				// 2 - register Linkage for return address
+				// 3 - register PC program counter
+				// 4 - register Status Word
+				// 5 - register Base
+				// 6 - register S general				
+				// 7 - register T general
+				// 8 - register Floating
+				
+				//
+				if(mnemonic.equals("STL")) {
+					this.registers.get(2).setData(disp);
+					
+					aRegisterDecText.setText(Integer.toString(Integer.parseInt(this.registers.get(2).getData())));
+					aRegisterHexText.setText(this.registers.get(2).getData());
+					
+					System.out.println(this.registers.get(2).getData());
+				}
+
+				
+//				System.out.println("instruction:"+instruction);
+//				System.out.println("instructionInt:"+instructionInt);
+//				
+//				System.out.println("opcode:"+opcode);
+//				System.out.println("opcodeInt:"+opcodeInt);
+//				System.out.println("mnemonic:"+mnemonic);
+				
+				
+				targetAddress += formattype;
+			}
 		}
 	}
 	

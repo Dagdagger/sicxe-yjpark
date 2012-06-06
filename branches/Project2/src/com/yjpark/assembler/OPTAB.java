@@ -189,6 +189,24 @@ public class OPTAB {
 		return formattype;
 	}
 	
+	public int getFormatType(String opcode) {
+		int formattype = 0;
+		
+		if(opcode.length() < 2) 
+			opcode = ("0" + opcode).toUpperCase();
+		else 
+			opcode = opcode.toUpperCase();
+		
+		for(int i=0; i<this.OPCODE.length; i++) {
+			if(opcode.equals(this.OPCODE[i][2])) {
+				formattype = Integer.parseInt(this.OPCODE[i][1]);
+				break;
+			}
+		}
+		
+		return formattype;
+	}
+	
 	// parameter로 입력된 opcode의 operand 갯수를 반환한다.
 	public int getOperandNumber(int opcodeInt) {
 		int operandnumber = 0;

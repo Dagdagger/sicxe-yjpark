@@ -6,10 +6,16 @@ import java.util.*;
 import sp.dtopack.*;
 
 //Parsing 처리 및 Object Program 출력을 실행하기 위한 Class
-public class Assembler {
+public class SicxeRunableManager {
 	
+	Vector<ObjectProgram> objectProgramVector = new Vector<ObjectProgram>();
+	Vector<SYMTAB> STAB = new Vector<SYMTAB>();
+	Vector<ESTAB> ESTAB = new Vector<ESTAB>();
+	Vector<ObjectCode> ObjectCode = new Vector<ObjectCode>();
+	
+
 	// 기본 생성자
-	public Assembler() {}
+	public SicxeRunableManager() {}
 
 //	public static void main(String[] args) {
 
@@ -48,5 +54,28 @@ public class Assembler {
 		//                     최종 ObjectCode로 변환하여 vector 반환
 		CLDTO = pp.changeObjectCode(pp.changeImmediateCode(pp.parseData(ifp)));
 		
+		// vector 전달 // ---
+		this.objectProgramVector = pp.getOPV();
+		this.STAB = pp.getSTAB();
+		this.ESTAB = pp.getESTAB();
+		this.ObjectCode = pp.getOCODE();
+		
 	}
+
+	public Vector<SYMTAB> getSTAB() {
+		return STAB;
+	}
+
+	public Vector<ESTAB> getESTAB() {
+		return ESTAB;
+	}
+
+	public Vector<ObjectCode> getObjectCode() {
+		return ObjectCode;
+	}
+	
+	public Vector<ObjectProgram> getObjectProgramVector() {
+		return objectProgramVector;
+	}
+
 }
