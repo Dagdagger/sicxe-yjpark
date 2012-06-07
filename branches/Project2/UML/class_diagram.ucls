@@ -50,7 +50,7 @@
   </class>  
   <class id="8" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.assembler.SYMTAB" project="SICXE_Project2" 
     file="/SICXE_Project2/src/com/yjpark/assembler/SYMTAB.java" binary="false">    
-    <position height="259" width="141" x="1975" y="2154"/>    
+    <position height="-1" width="-1" x="1987" y="1997"/>    
     <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true"/>      
       <operations public="true" package="true" protected="true" private="true"/>    
@@ -94,7 +94,7 @@
   </enumeration>  
   <class id="14" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.assembler.ESTAB" project="SICXE_Project2" 
     file="/SICXE_Project2/src/com/yjpark/assembler/ESTAB.java" binary="false">    
-    <position height="355" width="163" x="2156" y="2154"/>    
+    <position height="-1" width="-1" x="1825" y="1254"/>    
     <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true"/>      
       <operations public="true" package="true" protected="true" private="true"/>    
@@ -102,7 +102,7 @@
   </class>  
   <class id="15" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.assembler.OPTAB" project="SICXE_Project2" 
     file="/SICXE_Project2/src/com/yjpark/assembler/OPTAB.java" binary="false">    
-    <position height="1527" width="422" x="1513" y="2154"/>    
+    <position height="-1" width="-1" x="1864" y="40"/>    
     <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true"/>      
       <operations public="true" package="true" protected="true" private="true"/>    
@@ -126,7 +126,7 @@
   </package>  
   <class id="19" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.view.VisualSimulator" project="SICXE_Project2" 
     file="/SICXE_Project2/src/com/yjpark/view/VisualSimulator.java" binary="false">    
-    <position height="1811" width="385" x="1277" y="-727"/>    
+    <position height="-1" width="-1" x="1404" y="185"/>    
     <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true"/>      
       <operations public="true" package="true" protected="true" private="true"/>    
@@ -141,6 +141,11 @@
     </display>  
   </class>  
   <dependency id="21">    
+    <bendpoint x="1286" y="1124"/>    
+    <end type="SOURCE" refId="19"/>    
+    <end type="TARGET" refId="12"/>  
+  </dependency>  
+  <dependency id="22">    
     <bendpoint x="829" y="1124"/>    
     <bendpoint x="829" y="1417"/>    
     <bendpoint x="829" y="1604"/>    
@@ -148,32 +153,126 @@
     <end type="SOURCE" refId="19"/>    
     <end type="TARGET" refId="17"/>  
   </dependency>  
-  <association id="22">    
+  <association id="23">    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="24" name="pv"/>      
+      <multiplicity id="25" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="26">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="12"/>  
+  </dependency>  
+  <association id="27">    
+    <bendpoint x="1249" y="1604"/>    
+    <bendpoint x="1207" y="1855"/>    
+    <end type="SOURCE" refId="12" navigable="false">      
+      <attribute id="28" name="ObjectCode"/>      
+      <multiplicity id="29" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="17" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="30">    
+    <bendpoint x="1291" y="1855"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="31" name="OPV"/>      
+      <multiplicity id="32" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="20" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="33">    
     <end type="SOURCE" refId="9" navigable="false">      
-      <attribute id="23" name="registers"/>      
-      <multiplicity id="24" minimum="0" maximum="2147483647"/>    
+      <attribute id="34" name="registers"/>      
+      <multiplicity id="35" minimum="0" maximum="2147483647"/>    
     </end>    
     <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <dependency id="25">    
+  <association id="36">    
+    <bendpoint x="1249" y="1855"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="37" name="OCODE"/>      
+      <multiplicity id="38" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="17" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="39">    
     <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="1"/>  
+    <end type="TARGET" refId="14"/>  
   </dependency>  
-  <dependency id="26">    
-    <bendpoint x="1286" y="1124"/>    
+  <association id="40">    
+    <bendpoint x="1071" y="1417"/>    
+    <end type="SOURCE" refId="4" navigable="false">      
+      <attribute id="41" name="registers"/>      
+      <multiplicity id="42" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <nesting id="43">    
     <end type="SOURCE" refId="19"/>    
-    <end type="TARGET" refId="12"/>  
-  </dependency>  
-  <dependency id="27">    
+    <end type="TARGET" refId="13"/>  
+  </nesting>  
+  <dependency id="44">    
     <end type="SOURCE" refId="6"/>    
     <end type="TARGET" refId="17"/>  
   </dependency>  
-  <dependency id="28">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="10"/>  
+  <dependency id="45">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="8"/>  
   </dependency>  
-  <dependency id="29">    
+  <association id="46">    
+    <bendpoint x="1963" y="1604"/>    
+    <bendpoint x="2005" y="1855"/>    
+    <end type="SOURCE" refId="12" navigable="false">      
+      <attribute id="47" name="ESTAB"/>      
+      <multiplicity id="48" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="14" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="49">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="15"/>  
+  </dependency>  
+  <association id="50">    
+    <end type="SOURCE" refId="11" navigable="false">      
+      <attribute id="51" name="instance"/>      
+      <multiplicity id="52" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="11" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="53">    
+    <bendpoint x="1879" y="1855"/>    
+    <end type="SOURCE" refId="7"/>    
+    <end type="TARGET" refId="15"/>  
+  </dependency>  
+  <association id="54">    
+    <bendpoint x="1963" y="1855"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="55" name="ESTAB"/>      
+      <multiplicity id="56" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="14" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="57">    
+    <bendpoint x="1900" y="1604"/>    
+    <bendpoint x="1942" y="1855"/>    
+    <end type="SOURCE" refId="12" navigable="false">      
+      <attribute id="58" name="STAB"/>      
+      <multiplicity id="59" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="8" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="60">    
     <bendpoint x="1921" y="1124"/>    
     <bendpoint x="1921" y="1417"/>    
     <bendpoint x="1921" y="1604"/>    
@@ -181,103 +280,17 @@
     <end type="SOURCE" refId="19"/>    
     <end type="TARGET" refId="15"/>  
   </dependency>  
-  <association id="30">    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="31" name="pv"/>      
-      <multiplicity id="32" minimum="0" maximum="1"/>    
+  <association id="61">    
+    <bendpoint x="1225" y="1124"/>    
+    <bendpoint x="1225" y="1417"/>    
+    <end type="SOURCE" refId="19" navigable="false">      
+      <attribute id="62" name="registers"/>      
+      <multiplicity id="63" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="6" navigable="true"/>    
+    <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <dependency id="33">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="14"/>  
-  </dependency>  
-  <dependency id="34">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="9"/>  
-  </dependency>  
-  <association id="35">    
-    <bendpoint x="1963" y="1604"/>    
-    <bendpoint x="2005" y="1855"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="36" name="ESTAB"/>      
-      <multiplicity id="37" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="14" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="38">    
-    <bendpoint x="1249" y="1604"/>    
-    <bendpoint x="1207" y="1855"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="39" name="ObjectCode"/>      
-      <multiplicity id="40" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="17" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <dependency id="41">    
-    <bendpoint x="1312" y="1855"/>    
-    <end type="SOURCE" refId="7"/>    
-    <end type="TARGET" refId="1"/>  
-  </dependency>  
-  <association id="42">    
-    <bendpoint x="1249" y="1855"/>    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="43" name="OCODE"/>      
-      <multiplicity id="44" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="17" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="45">    
-    <bendpoint x="1963" y="1855"/>    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="46" name="ESTAB"/>      
-      <multiplicity id="47" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="14" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <dependency id="48">    
-    <bendpoint x="1984" y="1124"/>    
-    <bendpoint x="1984" y="1417"/>    
-    <bendpoint x="1984" y="1604"/>    
-    <bendpoint x="1984" y="1855"/>    
-    <end type="SOURCE" refId="19"/>    
-    <end type="TARGET" refId="8"/>  
-  </dependency>  
-  <dependency id="49">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="12"/>  
-  </dependency>  
-  <dependency id="50">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="11"/>  
-  </dependency>  
-  <dependency id="51">    
-    <end type="SOURCE" refId="12"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="52">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="8"/>  
-  </dependency>  
-  <dependency id="53">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="20"/>  
-  </dependency>  
-  <association id="54">    
-    <bendpoint x="1900" y="1855"/>    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="55" name="STAB"/>      
-      <multiplicity id="56" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <dependency id="57">    
+  <dependency id="64">    
     <bendpoint x="1246" y="1124"/>    
     <bendpoint x="1246" y="1417"/>    
     <bendpoint x="1228" y="1604"/>    
@@ -285,21 +298,59 @@
     <end type="SOURCE" refId="19"/>    
     <end type="TARGET" refId="20"/>  
   </dependency>  
-  <dependency id="58">    
-    <bendpoint x="1879" y="1855"/>    
-    <end type="SOURCE" refId="7"/>    
-    <end type="TARGET" refId="15"/>  
+  <dependency id="65">    
+    <end type="SOURCE" refId="19"/>    
+    <end type="TARGET" refId="4"/>  
   </dependency>  
-  <association id="59">    
-    <bendpoint x="1071" y="1417"/>    
-    <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="60" name="registers"/>      
-      <multiplicity id="61" minimum="0" maximum="2147483647"/>    
+  <dependency id="66">    
+    <bendpoint x="1984" y="1124"/>    
+    <bendpoint x="1984" y="1417"/>    
+    <bendpoint x="1984" y="1604"/>    
+    <bendpoint x="1984" y="1855"/>    
+    <end type="SOURCE" refId="19"/>    
+    <end type="TARGET" refId="8"/>  
+  </dependency>  
+  <dependency id="67">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="11"/>  
+  </dependency>  
+  <dependency id="68">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="10"/>  
+  </dependency>  
+  <association id="69">    
+    <bendpoint x="1270" y="1604"/>    
+    <bendpoint x="1270" y="1855"/>    
+    <end type="SOURCE" refId="12" navigable="false">      
+      <attribute id="70" name="objectProgramVector"/>      
+      <multiplicity id="71" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
+    <end type="TARGET" refId="20" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <dependency id="62">    
+  <dependency id="72">    
+    <bendpoint x="1312" y="1855"/>    
+    <end type="SOURCE" refId="7"/>    
+    <end type="TARGET" refId="1"/>  
+  </dependency>  
+  <dependency id="73">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="20"/>  
+  </dependency>  
+  <dependency id="74">    
+    <end type="SOURCE" refId="12"/>    
+    <end type="TARGET" refId="7"/>  
+  </dependency>  
+  <association id="75">    
+    <bendpoint x="1900" y="1855"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="76" name="STAB"/>      
+      <multiplicity id="77" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="8" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="78">    
     <bendpoint x="2026" y="1124"/>    
     <bendpoint x="2026" y="1417"/>    
     <bendpoint x="2026" y="1604"/>    
@@ -307,65 +358,14 @@
     <end type="SOURCE" refId="19"/>    
     <end type="TARGET" refId="14"/>  
   </dependency>  
-  <association id="63">    
-    <bendpoint x="1225" y="1124"/>    
-    <bendpoint x="1225" y="1417"/>    
-    <end type="SOURCE" refId="19" navigable="false">      
-      <attribute id="64" name="registers"/>      
-      <multiplicity id="65" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <nesting id="66">    
-    <end type="SOURCE" refId="19"/>    
-    <end type="TARGET" refId="13"/>  
-  </nesting>  
-  <dependency id="67">    
-    <end type="SOURCE" refId="19"/>    
-    <end type="TARGET" refId="4"/>  
+  <dependency id="79">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="9"/>  
   </dependency>  
-  <association id="68">    
-    <bendpoint x="1270" y="1604"/>    
-    <bendpoint x="1270" y="1855"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="69" name="objectProgramVector"/>      
-      <multiplicity id="70" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="20" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="71">    
-    <bendpoint x="1291" y="1855"/>    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="72" name="OPV"/>      
-      <multiplicity id="73" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="20" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <dependency id="74">    
+  <dependency id="80">    
     <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="15"/>  
+    <end type="TARGET" refId="1"/>  
   </dependency>  
-  <association id="75">    
-    <bendpoint x="1900" y="1604"/>    
-    <bendpoint x="1942" y="1855"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="76" name="STAB"/>      
-      <multiplicity id="77" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="78">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="79" name="instance"/>      
-      <multiplicity id="80" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="11" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
   <classifier-display autosize="true" package="true" initial-value="true" signature="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true"/>    
     <operations public="true" package="true" protected="true" private="true"/>  
