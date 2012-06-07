@@ -801,7 +801,40 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		final int DISP_MASK_BIT = 15;
 		
 		OPTAB opt = new OPTAB();
-			
+		
+		// for device
+		FileInputStream inputStream = null;
+		FileOutputStream outputStream = null;
+		try {
+			inputStream = new FileInputStream("src.jpg");
+			outputStream = new FileOutputStream("dst.jpg");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		int bytesRead = 0;
+		byte[] buffer = new byte[1024];
+		try {
+			while ((bytesRead = inputStream.read(buffer, 0, 1024)) != -1) {
+			    outputStream.write(buffer, 0, bytesRead);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try {
+			outputStream.close();
+			inputStream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
+		int xIdx = 0;
+		
 		for(int step = start; step < end; step++) {
 			instructionsList.setSelection(step);
 			targetAddressText.setText(Integer.toHexString(targetAddress).toUpperCase());
@@ -813,69 +846,70 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 			int opcodeInt = instructionInt & OPCODE_MASK_BIT;
 			String mnemonic = opt.getMNEMONIC(opcodeInt);
 			
-			int formattype = instruction.length();
+			int formattype = instruction.length()/2;
 			
-			String disp = instruction.substring(3);
+			String disp = instruction.substring(formattype);
 			
 			logWrite(LogLV.I, "Running instruction: "+mnemonic);
+//			System.out.println("formattype:"+formattype+" Running instruction: "+mnemonic+" disp:"+disp);
 			
-//			if(mnemonic.equals("CLEAR") {
-//				doCLEAR();
-//			}
-//			if(mnemonic.equals("COMP") {
-//				doCOMP();
-//			}
-//			if(mnemonic.equals("COMPR") {
-//				doCOMPR();
-//			}
-//			if(mnemonic.equals("J") {
-//				doJ();
-//			}
-//			if(mnemonic.equals("JEQ") {
-//				doJEQ();
-//			}
-//			if(mnemonic.equals("JLT") {
-//				doJLT();
-//			}
-//			if(mnemonic.equals("JSUB") {
-//				doJSUB();
-//			}
-//			if(mnemonic.equals("LDA") {
-//				doLDA();
-//			}
-//			if(mnemonic.equals("LDCH") {
-//				doLDCH();
-//			}
-//			if(mnemonic.equals("LDT") {
-//				doLDT();
-//			}
-//			if(mnemonic.equals("RD") {
+			if(mnemonic.equals("CLEAR")) {
+				doCLEAR(Integer.parseInt(disp.substring(0, 1), 16));
+			}
+			if(mnemonic.equals("COMP")) {
+				doCOMP(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("COMPR")) {
+				doCOMPR(Integer.parseInt(disp.substring(0, 1), 16), Integer.parseInt(disp.substring(1, 2), 16));
+			}
+			if(mnemonic.equals("J")) {
+				doJ(Integer.parseInt(disp, 16)); //
+			}
+			if(mnemonic.equals("JEQ")) {
+				doJEQ(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("JLT")) {
+				doJLT(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("JSUB")) {
+				doJSUB(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("LDA")) {
+				doLDA(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("LDCH")) {
+				doLDCH(disp);
+			}
+			if(mnemonic.equals("LDT")) {
+				doLDT(Integer.parseInt(disp, 16));
+			}
+			if(mnemonic.equals("RD")) {
 //				doRD();
-//			}
-//			if(mnemonic.equals("RSUB") {
-//				doRSUB();
-//			}
-//			if(mnemonic.equals("STA") {
-//				doSTA();
-//			}
-//			if(mnemonic.equals("STCH") {
-//				doSTCH();
-//			}
-//			if(mnemonic.equals("STL") {
-//				doSTL();
-//			}
-//			if(mnemonic.equals("STX") {
-//				doSTX();
-//			}
-//			if(mnemonic.equals("TD") {
+			}
+			if(mnemonic.equals("RSUB")) {
+				doRSUB();
+			}
+			if(mnemonic.equals("STA")) {
+				doSTA();
+			}
+			if(mnemonic.equals("STCH")) {
+				doSTCH();
+			}
+			if(mnemonic.equals("STL")) {
+				doSTL();
+			}
+			if(mnemonic.equals("STX")) {
+				doSTX();
+			}
+			if(mnemonic.equals("TD")) {
 //				doTD();
-//			}
-//			if(mnemonic.equals("TIXR") {
-//				doTIXR();
-//			}
-//			if(mnemonic.equals("WD") {
+			}
+			if(mnemonic.equals("TIXR")) {
+				xIdx = doTIXR(xIdx, Integer.parseInt(disp.substring(0, 1), 16));
+			}
+			if(mnemonic.equals("WD")) {
 //				doWD();
-//			}
+			}
 	
 			
 			refreshDisplay();
@@ -953,21 +987,22 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 				targetComponent2 = null;
 				break;
 			}
-			
-			// set data
-//			this.registers.get(registerNumber).setData(string);
-			
-			// set display
-			if(targetComponent1 != null)
-				((Text) targetComponent1).setText( transFormat(
-							Integer.toString(Integer.parseInt(this.registers.get(registerNumber).getData(), 16)), "0", 6, "postfix"
-						)
-				);
-			if(targetComponent2 != null)
-				((Text) targetComponent2).setText( transFormat(
-						this.registers.get(registerNumber).getData(), "0", 6, "postfix"
-					) 
-				);
+				
+			String regData = this.registers.get(registerNumber).getData();
+			if(!regData.equals("")) {
+							
+				// set display
+				if(targetComponent1 != null)
+					((Text) targetComponent1).setText( transFormat(
+								Integer.toString(Integer.parseInt(regData, 16)), "0", 6, "postfix"
+							)
+					);
+				if(targetComponent2 != null)
+					((Text) targetComponent2).setText( transFormat(
+							regData, "0", 6, "postfix"
+						) 
+					);
+			}
 		}
 	}
 
@@ -993,8 +1028,8 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 	}
 	
 	// inturction 구현
-	public void doCREAR(Register r1) {
-		r1.setData("0");
+	public void doCLEAR(int r1) {
+		this.registers.get(r1).setData("0");
 	}
 		
 	public int doCOMP(int mValue) {
@@ -1006,9 +1041,9 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		else return 0;
 	}
 	
-	public int doCOMPR(Register r1, Register r2) {
-		int r1RegDataInt = r1.getDataInt(16);
-		int r2RegDataInt = r2.getDataInt(16);
+	public int doCOMPR(int r1, int r2) {
+		int r1RegDataInt = this.registers.get(r1).getDataInt(16);
+		int r2RegDataInt = this.registers.get(r2).getDataInt(16);
 		
 		if(r1RegDataInt < r2RegDataInt) return 1;
 		else if(r1RegDataInt > r2RegDataInt) return -1;
@@ -1020,14 +1055,14 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		this.registers.get(3).setData(String.valueOf(mValue));
 	}
 	
-	public void doJEQ(int conditionCode, int mValue) {
-		if(conditionCode == mValue)
+	public void doJEQ(int mValue) {
+//		if(conditionCode == mValue)
 			// PC
 			this.registers.get(3).setData(String.valueOf(mValue));
 	}
 	
-	public void doJLT(int conditionCode, int mValue) {
-		if(conditionCode < mValue)
+	public void doJLT(int mValue) {
+//		if(conditionCode < mValue)
 			// PC
 			this.registers.get(3).setData(String.valueOf(mValue));
 	}
@@ -1057,16 +1092,6 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 	public void doRD(char[] cbuf) {
 //	public void doRD(Fi) {
 		// A[rightmost byte] <- (File fp)
-		
-//		FileReader fr = null;
-//		char[] cbuf = new char[1];
-//		
-//		try {
-//			fr = new FileReader(fp);
-//		} catch (FileNotFoundException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
 
 //		this.registers.get(0).setData(String.valueOf(fr.read(cbuf)));
 		
@@ -1107,9 +1132,9 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		return fp.canRead() & fp.canWrite();		
 	}
 	
-	public int doTIXR(int x, Register r1) {
+	public int doTIXR(int x, int r1) {
 		// X <- (X) + 1; (X):(r1)
-		this.registers.get(1).setData(r1.getData());
+		this.registers.get(1).setData(this.registers.get(r1).getData());
 		return x++;
 	}
 	
@@ -1136,9 +1161,7 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		int nextIdx = idx+1;
 		if(nextIdx > this.instructionVector.size()-1)
 			nextIdx--;
-		
-		System.out.println("idx:"+idx+" nextIdx:"+nextIdx);
-		
+	
 		run(this.instructionVector, idx, nextIdx);
 		
 		// 다음 instruction 으로 선택 이동
@@ -1156,9 +1179,7 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		int nextIdx = this.instructionVector.size();
 		if(idx > nextIdx-1)
 			nextIdx--;
-		
-		System.out.println("idx:"+idx+" nextIdx:"+nextIdx);
-		
+
 		run(this.instructionVector, idx, nextIdx);
 		
 		instructionsList.setSelection(nextIdx-1);
@@ -1175,6 +1196,31 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 	        	// 실행 상태 초기화
 	        	this.runStatus = 0;
 	        	instructionsList.setSelection(0);
+	        	
+	        	// 레지스터 display 초기화
+	        	aRegisterDecText.setText("");
+	        	aRegisterHexText.setText("");
+	        	xRegisterDecText.setText("");
+	        	xRegisterHexText.setText("");
+	        	lRegisterDecText.setText("");
+	        	lRegisterHexText.setText("");
+	        	pcRegisterDecText.setText("");
+	        	pcRegisterHexText.setText("");
+	        	swRegisterText.setText("");
+	        	
+	        	bRegisterDecText.setText("");
+	        	bRegisterHexText.setText("");
+	        	sRegisterDecText.setText("");
+	        	sRegisterHexText.setText("");
+	        	tRegisterDecText.setText("");
+	        	tRegisterHexText.setText("");
+	        	fRegisterText.setText("");
+	        	
+	        	// 레지스터 data 초기화
+	        	for(int r = 0; r < this.registers.size(); r++) {
+	        		this.registers.get(r).clear();
+	        	}
+	        	
 	        	return true;
 			} else {
 				return false;

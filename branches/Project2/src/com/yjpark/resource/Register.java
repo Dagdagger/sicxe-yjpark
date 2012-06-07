@@ -2,7 +2,7 @@ package com.yjpark.resource;
 
 public class Register {
 	private int regNumber;
-	private String data = "0";
+	private String data = "";
 
 	public Register(int number) {
 		this.regNumber = number;
@@ -25,5 +25,9 @@ public class Register {
 	}
 	public int getDataInt(int mode) {
 		return Integer.parseInt(this.data, mode);
+	}
+	
+	public void clear() {
+		this.data = "";
 	}
 }
