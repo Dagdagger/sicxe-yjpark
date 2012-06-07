@@ -1179,11 +1179,11 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		if(!confirmRunning()) return;
 				
 		int idx = instructionsList.getSelectionIndex();
-		int nextIdx = this.instructionVector.size()-1;
+		int nextIdx = this.instructionVector.size();
 //		if(idx > nextIdx-2)
 //			nextIdx--;
 
-		run(this.instructionVector, idx, nextIdx);
+		run(this.instructionVector, idx, nextIdx-1);
 		
 		instructionsList.setSelection(nextIdx);
 	}
