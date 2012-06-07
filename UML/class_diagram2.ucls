@@ -1,0 +1,68 @@
+<class-diagram version="1.0.7" icons="true" automaticImage="PNG" always-add-relationships="true" generalizations="true" 
+  realizations="true" associations="true" dependencies="true" nesting-relationships="true">  
+  <class id="1" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.resource.Register" project="SICXE_Project2" 
+    file="/SICXE_Project2/src/com/yjpark/resource/Register.java" binary="false">    
+    <position height="211" width="136" x="531" y="1205"/>    
+    <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <enumeration id="2" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.view.VisualSimulator.LogLV" 
+    project="SICXE_Project2" file="/SICXE_Project2/src/com/yjpark/view/VisualSimulator.java" binary="false">    
+    <position height="179" width="116" x="707" y="1205"/>    
+    <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </enumeration>  
+  <package id="3" language="java" name="com.yjpark.view" project="SICXE_Project2" 
+    file="/SICXE_Project2/src/com/yjpark/view" binary="false">    
+    <position height="44" width="115" x="152" y="-646"/>  
+  </package>  
+  <package id="4" language="java" name="com.yjpark.resource" project="SICXE_Project2" 
+    file="/SICXE_Project2/src/com/yjpark/resource" binary="false">    
+    <position height="44" width="141" x="307" y="-646"/>  
+  </package>  
+  <class id="5" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.resource.ResourceManager" 
+    project="SICXE_Project2" file="/SICXE_Project2/src/com/yjpark/resource/ResourceManager.java" binary="false">    
+    <position height="83" width="179" x="488" y="-646"/>    
+    <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="6" corner="BOTTOM_RIGHT" language="java" name="com.yjpark.view.VisualSimulator" project="SICXE_Project2" 
+    file="/SICXE_Project2/src/com/yjpark/view/VisualSimulator.java" binary="false">    
+    <position height="1811" width="385" x="707" y="-646"/>    
+    <display autosize="true" package="true" initial-value="true" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <association id="7">    
+    <end type="SOURCE" refId="5" navigable="false">      
+      <attribute id="8" name="registers"/>      
+      <multiplicity id="9" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="10">    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="11" name="registers"/>      
+      <multiplicity id="12" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <nesting id="13">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="2"/>  
+  </nesting>  
+  <classifier-display autosize="true" package="true" initial-value="true" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>
