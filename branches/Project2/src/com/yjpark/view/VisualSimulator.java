@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.*;
 import com.cloudgarden.resource.SWTResourceManager;
 
 import com.yjpark.assembler.*;
-import com.yjpark.loader.*;
 import com.yjpark.resource.*;
 
 /**
@@ -74,7 +73,7 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 	private Text xRegisterHexText;
 	private Text lRegisterHexText;
 	private Text pcRegisterHexText;
-	private Text swRegisterDecText;
+	private Text swRegisterText;
 	private Text pcRegisterDecText;
 	private Label swRegisterLabel;
 	private Label pcRegisterLabel;
@@ -110,6 +109,12 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 	// for registers
 	private Vector<Register> registers = new Vector<Register>();
 	
+	// for instruction
+	int targetAddress = 0;
+	private Vector<String> instructionVector = new Vector<String>();
+	
+	// for run
+	int runStatus = 0;
 	
 	{
 		//Register as a resource user - SWTResourceManager will
@@ -297,11 +302,11 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 					pcRegisterDecText.setBackground(whiteBg);
 				}
 				{
-					swRegisterDecText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
-					swRegisterDecText.setBounds(51, 115, 173, 20);
+					swRegisterText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
+					swRegisterText.setBounds(51, 115, 173, 20);
 					
 					// background
-					swRegisterDecText.setBackground(whiteBg);
+					swRegisterText.setBackground(whiteBg);
 				}
 				{
 					aRegisterHexText = new Text(registerGroup, SWT.READ_ONLY | SWT.BORDER);
@@ -488,12 +493,22 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 				stepRunButton = new Button(this, SWT.CENTER);
 				stepRunButton.setText("\uc2e4\ud589(1 Step)");
 				stepRunButton.setBounds(433, 304, 85, 30);
+				stepRunButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent evt) {
+						stepRunButtonWidgetSelected(evt);
+					}
+				});
 				stepRunButton.setEnabled(false);
 			}
 			{
 				allRunButton = new Button(this, SWT.PUSH | SWT.CENTER);
 				allRunButton.setText("\uc2e4\ud589(All)");
 				allRunButton.setBounds(433, 350, 85, 30);
+				allRunButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent evt) {
+						allRunButtonWidgetSelected(evt);
+					}
+				});
 				allRunButton.setEnabled(false);
 			}
 			{
@@ -601,42 +616,6 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 
 	}
 
-	
-	/**
-	* Auto-generated main method to display this 
-	* org.eclipse.swt.widgets.Composite inside a new Shell.
-	*/
-	public static void main(String[] args) {
-
-		
-		// VisualSimulator
-		Display display = Display.getDefault();
-		final Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
-		shell.setText("Sic/XE Simulator(20022992 박용진)");
-		
-		VisualSimulator inst = new VisualSimulator(shell, SWT.NULL);
-		Point size = inst.getSize();
-		shell.setLayout(new FillLayout());
-		shell.addShellListener(new ShellAdapter() {
-			public void shellClosed(ShellEvent evt) {
-				shellShellClosed(evt, shell);
-			}
-		});
-		shell.layout();
-		if(size.x == 0 && size.y == 0) {
-			inst.pack();
-			shell.pack();
-		} else {
-			Rectangle shellBounds = shell.computeTrim(0, 0, size.x, size.y);
-			shell.setSize(shellBounds.width, shellBounds.height);
-		}
-		shell.open();
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-	}
-	
 	
 	/**
 	 * Event Handle
@@ -750,111 +729,31 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 					ESTAB v = ESTAB.get(5); // WDREC
 					v.setAddress(pgLengthTotal);	
 				}
-				
-				System.out.println(pg.getPgName()
-									+"\t"+pg.getStartAddress()
-									+"\t"+pg.getPgLength()
-									+"\t"+pg.getExtDef()
-									+"\t"+pg.getExtRef()
-									+"\t"+pg.getTextStr()
-									+"\t"+pg.getModStr()
-									+"\t"+pg.getEndStr()
-				);
 			}
 			
 			// address loading & modification
-			for(int i=0; i<ESTAB.size(); i++) {
-				ESTAB v = ESTAB.get(i);
-
-				System.out.println(i+":"
-									+" "+v.getCsectIdx()
-									+"\t"+v.getContolSection()
-									+"\t"+v.getSymbolIdx()
-									+"\t"+v.getSymbol()
-									+"\t"+Integer.toHexString(v.getAddress()).toUpperCase()
-									+"\t"+v.getLength()
-				);
-			}		
-			
-			
 			// set instruction
-			Vector<String> instructionVector = new Vector<String>();
-			instructionVector.clear();
+			this.instructionVector.clear();
 			for(int i=4; i<ObjectCode.size(); i++) {
 				ObjectCode oc = ObjectCode.get(i);
 				
-				instructionVector.add(oc.getObjectCode());
+				this.instructionVector.add(oc.getObjectCode());
 				
 				// List 에 표시
-				instructionsList.add(oc.getObjectCode());
+				this.instructionsList.add(oc.getObjectCode());
 				
 //				System.out.println("instructionVector:"+oc.getObjectCode());
 			}
 //			System.out.println(instructionVector.toString());
 			
 			//
-			int startAddressInMemory = instructionVector.hashCode();
+			int startAddressInMemory = this.instructionVector.hashCode();
 			startAddressMemoryText.setText(Integer.toHexString(startAddressInMemory).toUpperCase());
 			
-			int targetAddress = startAddressInMemory;
+			this.targetAddress = startAddressInMemory;
 			
-			final int OPCODE_MASK_BIT = 252;
-			final int NI_MASK_BIT = 3;
-			final int XBPE_MASK_BIT = 240;
-			final int DISP_MASK_BIT = 15;
-			
-			OPTAB opt = new OPTAB();
-			
-			for(int inst = 0; inst < instructionVector.size(); inst++) {
-				instructionsList.setSelection(inst);
-				targetAddressText.setText(Integer.toHexString(targetAddress).toUpperCase());
-				
-				String instruction = instructionVector.get(inst);
-				int instructionInt = Integer.parseInt(instruction.substring(0, 2), 16);
-				
-				String opcode = Integer.toHexString(instructionInt & OPCODE_MASK_BIT);
-				int opcodeInt = instructionInt & OPCODE_MASK_BIT;
-				String mnemonic = opt.getMNEMONIC(opcodeInt);
-				
-				int formattype = instruction.length();
-				
-				String disp = instruction.substring(3);
-				
-//				ResourceManager rMgr = new ResourceManager();
-//				this.registers = rMgr.getRegisters();
-//				this.registers.get(0)
-				
-				// 0 - register Accumulator
-				// 1 - register X index for loop
-				// 2 - register Linkage for return address
-				// 3 - register PC program counter
-				// 4 - register Status Word
-				// 5 - register Base
-				// 6 - register S general				
-				// 7 - register T general
-				// 8 - register Floating
-				
-				//
-				if(mnemonic.equals("STL")) {
-					this.registers.get(2).setData(disp);
-					
-					aRegisterDecText.setText(Integer.toString(Integer.parseInt(this.registers.get(2).getData())));
-					aRegisterHexText.setText(this.registers.get(2).getData());
-					
-					System.out.println(this.registers.get(2).getData());
-				}
-
-				
-//				System.out.println("instruction:"+instruction);
-//				System.out.println("instructionInt:"+instructionInt);
-//				
-//				System.out.println("opcode:"+opcode);
-//				System.out.println("opcodeInt:"+opcodeInt);
-//				System.out.println("mnemonic:"+mnemonic);
-				
-				
-				targetAddress += formattype;
-			}
+			// 첫번째 instruction 선택
+			instructionsList.setSelection(0);
 		}
 	}
 	
@@ -892,5 +791,430 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		// move cursor to bottom
 		logStyledText.setSelection(logStyledText.getCharCount());
 	}
+	
+	
+	// =============================================== //
+	public void run(Vector<String> instructionVector, int start, int end) {
+		final int OPCODE_MASK_BIT = 252;
+		final int NI_MASK_BIT = 3;
+		final int XBPE_MASK_BIT = 240;
+		final int DISP_MASK_BIT = 15;
+		
+		OPTAB opt = new OPTAB();
+			
+		for(int step = start; step < end; step++) {
+			instructionsList.setSelection(step);
+			targetAddressText.setText(Integer.toHexString(targetAddress).toUpperCase());
+			
+			String instruction = instructionVector.get(step);
+			int instructionInt = Integer.parseInt(instruction.substring(0, 2), 16);
+			
+			String opcode = Integer.toHexString(instructionInt & OPCODE_MASK_BIT);
+			int opcodeInt = instructionInt & OPCODE_MASK_BIT;
+			String mnemonic = opt.getMNEMONIC(opcodeInt);
+			
+			int formattype = instruction.length();
+			
+			String disp = instruction.substring(3);
+			
+			logWrite(LogLV.I, "Running instruction: "+mnemonic);
+			
+//			if(mnemonic.equals("CLEAR") {
+//				doCLEAR();
+//			}
+//			if(mnemonic.equals("COMP") {
+//				doCOMP();
+//			}
+//			if(mnemonic.equals("COMPR") {
+//				doCOMPR();
+//			}
+//			if(mnemonic.equals("J") {
+//				doJ();
+//			}
+//			if(mnemonic.equals("JEQ") {
+//				doJEQ();
+//			}
+//			if(mnemonic.equals("JLT") {
+//				doJLT();
+//			}
+//			if(mnemonic.equals("JSUB") {
+//				doJSUB();
+//			}
+//			if(mnemonic.equals("LDA") {
+//				doLDA();
+//			}
+//			if(mnemonic.equals("LDCH") {
+//				doLDCH();
+//			}
+//			if(mnemonic.equals("LDT") {
+//				doLDT();
+//			}
+//			if(mnemonic.equals("RD") {
+//				doRD();
+//			}
+//			if(mnemonic.equals("RSUB") {
+//				doRSUB();
+//			}
+//			if(mnemonic.equals("STA") {
+//				doSTA();
+//			}
+//			if(mnemonic.equals("STCH") {
+//				doSTCH();
+//			}
+//			if(mnemonic.equals("STL") {
+//				doSTL();
+//			}
+//			if(mnemonic.equals("STX") {
+//				doSTX();
+//			}
+//			if(mnemonic.equals("TD") {
+//				doTD();
+//			}
+//			if(mnemonic.equals("TIXR") {
+//				doTIXR();
+//			}
+//			if(mnemonic.equals("WD") {
+//				doWD();
+//			}
+	
+			
+			refreshDisplay();
+	
+			
+			this.targetAddress += formattype;
+		}
+	
+		// 끝까지 실행한 경우
+		if(end >= this.instructionVector.size()-1) {
+			int style = SWT.APPLICATION_MODAL | SWT.CHECK;
+			MessageBox messageBox = new MessageBox(getShell(), style);
+			messageBox.setText("확인");
+			messageBox.setMessage("성공적으로 실행하였습니다.");
+			if (messageBox.open() != 0) {
+				this.runStatus = 1;
+			}
+		}
+	}
+	
+	/**
+	 * register set data & display
+	 * 
+	 * registerNumber
+	 * 0 - register Accumulator
+ 	 * 1 - register X index for loop
+	 * 2 - register Linkage for return address
+	 * 3 - register PC program counter
+	 * 4 - register Status Word
+	 * 5 - register Base
+	 * 6 - register S general				
+	 * 7 - register T general
+	 * 8 - register Floating
+	 */
+	public void refreshDisplay() {
+	
+		Object targetComponent1 = null, targetComponent2 = null;
+		
+		for(int registerNumber = 0; registerNumber < this.registers.size(); registerNumber++) {
+			switch(registerNumber) {
+			case 0:
+				targetComponent1 = aRegisterDecText;
+				targetComponent2 = aRegisterHexText;
+				break;
+			case 1:
+				targetComponent1 = xRegisterDecText;
+				targetComponent2 = xRegisterHexText;
+				break;
+			case 2:
+				targetComponent1 = lRegisterDecText;
+				targetComponent2 = lRegisterHexText;
+				break;
+			case 3:
+				targetComponent1 = pcRegisterDecText;
+				targetComponent2 = pcRegisterHexText;
+				break;
+			case 4:
+				targetComponent1 = swRegisterText;
+				targetComponent2 = null;
+				break;
+			case 5:
+				targetComponent1 = bRegisterDecText;
+				targetComponent2 = bRegisterHexText;
+				break;
+			case 6:
+				targetComponent1 = sRegisterDecText;
+				targetComponent2 = sRegisterHexText;
+				break;
+			case 7:
+				targetComponent1 = tRegisterDecText;
+				targetComponent2 = tRegisterHexText;
+				break;
+			case 8:
+				targetComponent1 = fRegisterText;
+				targetComponent2 = null;
+				break;
+			}
+			
+			// set data
+//			this.registers.get(registerNumber).setData(string);
+			
+			// set display
+			if(targetComponent1 != null)
+				((Text) targetComponent1).setText( transFormat(
+							Integer.toString(Integer.parseInt(this.registers.get(registerNumber).getData(), 16)), "0", 6, "postfix"
+						)
+				);
+			if(targetComponent2 != null)
+				((Text) targetComponent2).setText( transFormat(
+						this.registers.get(registerNumber).getData(), "0", 6, "postfix"
+					) 
+				);
+		}
+	}
 
+	// 각 자리별 포맷에 맞추기 위해 변환
+	public String transFormat(String orgStr, String pad, int formatLen, String type) {
+		String retStr = "";
+
+		// 지정한 양식 길이에서 원본 문자열의 길이를 뺀만큼
+		// pad 를 만든다
+		for(int i = 0; i<(formatLen-orgStr.length()); i++) {
+			retStr = retStr.concat(pad);
+		}
+		
+		if(type.equals("prefix")) {
+ 			// 원문 앞에 붙여준다.
+			retStr = retStr.concat(orgStr);
+		} else if(type.equals("postfix")) {
+			// 원문 뒤에 붙여준다
+			retStr = orgStr.concat(retStr);
+		}
+		
+		return retStr;
+	}
+	
+	// inturction 구현
+	public void doCREAR(Register r1) {
+		r1.setData("0");
+	}
+		
+	public int doCOMP(int mValue) {
+		// A
+		int aRegDataInt = this.registers.get(0).getDataInt(16);
+		
+		if(aRegDataInt < mValue) return 1; 
+		else if(aRegDataInt > mValue) return -1;
+		else return 0;
+	}
+	
+	public int doCOMPR(Register r1, Register r2) {
+		int r1RegDataInt = r1.getDataInt(16);
+		int r2RegDataInt = r2.getDataInt(16);
+		
+		if(r1RegDataInt < r2RegDataInt) return 1;
+		else if(r1RegDataInt > r2RegDataInt) return -1;
+		else return 0;
+	}
+	
+	public void doJ(int mValue) {
+		// PC
+		this.registers.get(3).setData(String.valueOf(mValue));
+	}
+	
+	public void doJEQ(int conditionCode, int mValue) {
+		if(conditionCode == mValue)
+			// PC
+			this.registers.get(3).setData(String.valueOf(mValue));
+	}
+	
+	public void doJLT(int conditionCode, int mValue) {
+		if(conditionCode < mValue)
+			// PC
+			this.registers.get(3).setData(String.valueOf(mValue));
+	}
+	
+	public void doJSUB(int mValue) {
+		// L <- (PC); PC <- m
+		this.registers.get(2).setData(this.registers.get(3).getData());
+		this.registers.get(3).setData(String.valueOf(mValue));		
+	}
+	
+	public void doLDA(int mValue) {
+		// A
+		this.registers.get(0).setData(String.valueOf(mValue));
+	}
+	
+	public void doLDCH(String mValue) {
+		// A[rightmost byte] <- (m)
+		this.registers.get(0).setData(mValue.substring(0,1));
+	}
+	
+	public void doLDT(int mValue) {
+		// T
+		this.registers.get(7).setData(String.valueOf(mValue));
+	}
+	
+	// ?
+	public void doRD(char[] cbuf) {
+//	public void doRD(Fi) {
+		// A[rightmost byte] <- (File fp)
+		
+//		FileReader fr = null;
+//		char[] cbuf = new char[1];
+//		
+//		try {
+//			fr = new FileReader(fp);
+//		} catch (FileNotFoundException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+
+//		this.registers.get(0).setData(String.valueOf(fr.read(cbuf)));
+		
+		this.registers.get(0).setData(String.valueOf(cbuf));
+
+	}
+	
+	public void doRSUB() {
+		// PC <- (L)
+		this.registers.get(3).setData(this.registers.get(2).getData());
+	}
+	
+	public String doSTA() {
+		// m <- (A)
+		String mValue = this.registers.get(0).getData();
+		return mValue;		
+	}
+	
+	public String doSTCH() {
+		// m <- (A) [rightmost byte]
+		String mValue = this.registers.get(0).getData().substring(0,1);
+		return mValue;
+	}
+	
+	public String doSTL() {
+		// m <- (L)
+		String mValue = this.registers.get(2).getData();
+		return mValue;		
+	}
+	
+	public String doSTX() {
+		// m <- (X)
+		String mValue = this.registers.get(1).getData();
+		return mValue;		
+	}
+	
+	public boolean doTD(File fp) {
+		return fp.canRead() & fp.canWrite();		
+	}
+	
+	public int doTIXR(int x, Register r1) {
+		// X <- (X) + 1; (X):(r1)
+		this.registers.get(1).setData(r1.getData());
+		return x++;
+	}
+	
+	// ?
+	public void doWD(FileWriter fw) {
+		try {
+			fw.write(this.registers.get(0).getData().substring(0,1));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void stepRunButtonWidgetSelected(SelectionEvent evt) {
+		System.out.println("stepRunButton.widgetSelected, event="+evt);
+		//TODO add your code for stepRunButton.widgetSelected
+		
+		// 실행 완료시 재실행엽 확인
+		if(!confirmRunning()) return;
+		
+		// 현재 선택된 instruction index run step 1
+		int idx = instructionsList.getSelectionIndex();
+		
+		int nextIdx = idx+1;
+		if(nextIdx > this.instructionVector.size()-1)
+			nextIdx--;
+		
+		System.out.println("idx:"+idx+" nextIdx:"+nextIdx);
+		
+		run(this.instructionVector, idx, nextIdx);
+		
+		// 다음 instruction 으로 선택 이동
+		instructionsList.setSelection(nextIdx);
+	}
+	
+	private void allRunButtonWidgetSelected(SelectionEvent evt) {
+		System.out.println("allRunButton.widgetSelected, event="+evt);
+		//TODO add your code for allRunButton.widgetSelected
+		
+		// 실행 완료시 재실행엽 확인
+		if(!confirmRunning()) return;
+				
+		int idx = instructionsList.getSelectionIndex();
+		int nextIdx = this.instructionVector.size();
+		if(idx > nextIdx-1)
+			nextIdx--;
+		
+		System.out.println("idx:"+idx+" nextIdx:"+nextIdx);
+		
+		run(this.instructionVector, idx, nextIdx);
+		
+		instructionsList.setSelection(nextIdx-1);
+	}
+	
+	
+	public boolean confirmRunning() {
+		if(this.runStatus == 1) {
+	        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+	        MessageBox messageBox = new MessageBox(getShell(), style);
+	        messageBox.setText("확인");
+	        messageBox.setMessage("다시 실행하시겠습니까?");
+	        if(messageBox.open() == SWT.YES) {
+	        	// 실행 상태 초기화
+	        	this.runStatus = 0;
+	        	instructionsList.setSelection(0);
+	        	return true;
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	* Auto-generated main method to display this 
+	* org.eclipse.swt.widgets.Composite inside a new Shell.
+	*/
+	public static void main(String[] args) {
+
+		
+		// VisualSimulator
+		Display display = Display.getDefault();
+		final Shell shell = new Shell(display, SWT.MIN | SWT.CLOSE);
+		shell.setText("Sic/XE Simulator(20022992 박용진)");
+		
+		VisualSimulator inst = new VisualSimulator(shell, SWT.NULL);
+		Point size = inst.getSize();
+		shell.setLayout(new FillLayout());
+		shell.addShellListener(new ShellAdapter() {
+			public void shellClosed(ShellEvent evt) {
+				shellShellClosed(evt, shell);
+			}
+		});
+		shell.layout();
+		if(size.x == 0 && size.y == 0) {
+			inst.pack();
+			shell.pack();
+		} else {
+			Rectangle shellBounds = shell.computeTrim(0, 0, size.x, size.y);
+			shell.setSize(shellBounds.width, shellBounds.height);
+		}
+		shell.open();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch())
+				display.sleep();
+		}
+	}
 }
