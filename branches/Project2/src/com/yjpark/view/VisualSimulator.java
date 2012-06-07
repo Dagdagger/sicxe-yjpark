@@ -835,7 +835,7 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		
 		int xIdx = 0;
 		
-		for(int step = start; step < end; step++) {
+		for(int step = start; step <= end; step++) {
 			instructionsList.setSelection(step);
 			targetAddressText.setText(Integer.toHexString(targetAddress).toUpperCase());
 			
@@ -1152,16 +1152,19 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		System.out.println("stepRunButton.widgetSelected, event="+evt);
 		//TODO add your code for stepRunButton.widgetSelected
 		
-		// 실행 완료시 재실행엽 확인
+		// 실행 완료시 재실행 여부 확인
 		if(!confirmRunning()) return;
 		
 		// 현재 선택된 instruction index run step 1
 		int idx = instructionsList.getSelectionIndex();
 		
 		int nextIdx = idx+1;
-		if(nextIdx > this.instructionVector.size()-1)
-			nextIdx--;
+//		if(nextIdx > this.instructionVector.size()+1)
+//			nextIdx--;
 	
+		System.out.println("idx:"+idx+" next:"+nextIdx);
+		
+		
 		run(this.instructionVector, idx, nextIdx);
 		
 		// 다음 instruction 으로 선택 이동
@@ -1172,17 +1175,17 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		System.out.println("allRunButton.widgetSelected, event="+evt);
 		//TODO add your code for allRunButton.widgetSelected
 		
-		// 실행 완료시 재실행엽 확인
+		// 실행 완료시 재실행 여부 확인
 		if(!confirmRunning()) return;
 				
 		int idx = instructionsList.getSelectionIndex();
-		int nextIdx = this.instructionVector.size();
-		if(idx > nextIdx-1)
-			nextIdx--;
+		int nextIdx = this.instructionVector.size()-1;
+//		if(idx > nextIdx-2)
+//			nextIdx--;
 
 		run(this.instructionVector, idx, nextIdx);
 		
-		instructionsList.setSelection(nextIdx-1);
+		instructionsList.setSelection(nextIdx);
 	}
 	
 	
