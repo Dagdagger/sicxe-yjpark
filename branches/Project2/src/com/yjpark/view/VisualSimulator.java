@@ -545,6 +545,7 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 						{
 							saveFileMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
 							saveFileMenuItem.setText("Save");
+							saveFileMenuItem.setEnabled(true);
 						}
 						{
 							saveAsFileMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
@@ -654,11 +655,11 @@ public class VisualSimulator extends org.eclipse.swt.widgets.Composite {
 		
 		
 		// save 여부 확인 할 것 // ---
-//        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
-//        MessageBox messageBox = new MessageBox(shell, style);
-//        messageBox.setText("확인");
-//        messageBox.setMessage("프로그램을 종료하시겠습니까?");
-//        evt.doit = messageBox.open() == SWT.YES;
+        int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+        MessageBox messageBox = new MessageBox(shell, style);
+        messageBox.setText("확인");
+        messageBox.setMessage("프로그램을 종료하시겠습니까?");
+        evt.doit = messageBox.open() == SWT.YES;
 	}
 	
 	private void assembleButtonWidgetSelected(SelectionEvent evt) {
